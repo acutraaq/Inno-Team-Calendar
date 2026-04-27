@@ -1,0 +1,53 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_WEBAPP_NAME: "inno-team-calendar" # <-- CHANGE THIS to your Azure app name
+  NODE_VERSION: "20.x"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Next.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run build
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          slot-name: "Production"
+
+# IMPORTANT: Before using this workflow:
+# 1. Create an Azure Web App (Node.js 20, Linux).
+# 2. Go to Azure Portal > Your Web App > Deployment Center > Download Publish Profile.
+# 3. In your GitHub repo, go to Settings > Secrets > Actions.
+# 4. Create a secret named AZUREAPPSERVICE_PUBLISHPROFILE and paste the content from step 2.
+# 5. Create a secret named DATABASE_URL with your production database URL.
+#    NOTE: For production on Azure, SQLite is NOT recommended because the filesystem is ephemeral.
+#    Option A: Use an Azure SQL Database / PostgreSQL flexible server.
+#    Option B: Mount an Azure File Share to persist the SQLite file.
+#    The connection string below is a placeholder. Update it for your chosen database.

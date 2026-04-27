@@ -1,0 +1,14 @@
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.3:3000
+- Environments: .env
+✓ Ready in 154ms
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3002
+- PID:          68395
+- Dir:          /Users/izzatnasri/Code/Personal/Inno Team Calendar
+- Log:          .next/dev/logs/next-development.log
+
+Run kill 68395 to stop it.
+[?25h

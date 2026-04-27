@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model TeamMember {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  color  String
+  events Event[]
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  date         String   // YYYY-MM-DD
+  type         String   // HOLIDAY, MEDICAL_LEAVE, WFH, PUBLIC_HOLIDAY, WEEKLY_PLAN
+  title        String?
+  description  String?
+  teamMemberId String?
+  teamMember   TeamMember? @relation(fields: [teamMemberId], references: [id])
+  createdAt    DateTime  @default(now())
+}
