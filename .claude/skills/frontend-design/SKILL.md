@@ -1,6 +1,6 @@
-# Frontend Design Skill for Inno Team Calendar
+# Frontend Design Skill for Inno Team Planner
 
-Use this skill when modifying UI/UX of the Innovation Team Calendar.
+Use this skill when modifying UI/UX of the Inno Team Planner.
 
 ## Design Language: Minimal & Soft Pastel
 - Colors should feel soft and desaturated.

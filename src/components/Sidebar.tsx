@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { SafeTeamMember } from "@/types";
-import { Users, ChevronRight } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface SidebarProps {
   teamMembers: SafeTeamMember[];
@@ -21,8 +21,6 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTypeFilter, onToggleType }: SidebarProps) {
-  const [expandedTypes, setExpandedTypes] = useState(true);
-
   return (
     <div className="w-64 bg-white border-r border-stone-100 flex flex-col h-full">
       <div className="p-5 border-b border-stone-100">

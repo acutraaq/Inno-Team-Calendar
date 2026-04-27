@@ -10,6 +10,7 @@ interface DayCellProps {
   events: {
     id: string;
     type: string;
+    session: string;
     teamMember: { name: string; color: string } | null;
     title: string | null;
   }[];
@@ -74,7 +75,9 @@ export function DayCell({
                 ? "Weekly Plan"
                 : event.type === "PUBLIC_HOLIDAY"
                 ? event.title || "Holiday"
-                : event.teamMember?.name || "Event"}
+                : `${event.teamMember?.name || "Event"}${
+                    event.session !== "FULL_DAY" ? ` (${event.session})` : ""
+                  }`}
             </span>
           </div>
         ))}

@@ -1,6 +1,6 @@
 # Calendar Development Skill
 
-Use this skill when working on the Innovation Team Calendar webapp.
+Use this skill when working on the Inno Team Planner webapp.
 
 ## Domain Knowledge
 - **Team Members**: Izzat, Shikin, Ghash, Haneeda, Farhana, Thanesh, Hazim, Fahad, Hakim

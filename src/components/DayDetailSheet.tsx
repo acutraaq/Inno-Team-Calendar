@@ -2,10 +2,14 @@
 
 import React, { useState } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
-import type { EventType } from "@/types";
+import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected error";
+}
 
 interface DayDetailSheetProps {
   date: string;
@@ -40,6 +44,12 @@ const TYPE_TEXT: Record<EventType, string> = {
   WEEKLY_PLAN: "Weekly Plan",
 };
 
+const SESSION_OPTIONS: { value: EventSession; label: string }[] = [
+  { value: "FULL_DAY", label: "Full Day" },
+  { value: "AM", label: "AM (Half Day)" },
+  { value: "PM", label: "PM (Half Day)" },
+];
+
 export function DayDetailSheet({
   date,
   events,
@@ -51,6 +61,7 @@ export function DayDetailSheet({
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formType, setFormType] = useState<string>("WFH");
+  const [formSession, setFormSession] = useState<EventSession>("FULL_DAY");
   const [formTitle, setFormTitle] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [formMemberId, setFormMemberId] = useState("");
@@ -62,6 +73,7 @@ export function DayDetailSheet({
     setFormTitle("");
     setFormDesc("");
     setFormMemberId("");
+    setFormSession("FULL_DAY");
     setError("");
     setEditingId(null);
   };
@@ -77,6 +89,7 @@ export function DayDetailSheet({
     setFormTitle(event.title || "");
     setFormDesc(event.description || "");
     setFormMemberId(event.teamMemberId || "");
+    setFormSession((event.session as EventSession) || "FULL_DAY");
     setError("");
     setShowForm(true);
   };
@@ -91,6 +104,7 @@ export function DayDetailSheet({
         await updateEvent(editingId, {
           date,
           type: formType,
+          session: formSession,
           title: formTitle,
           description: formDesc,
           teamMemberId: formMemberId,
@@ -99,6 +113,7 @@ export function DayDetailSheet({
         await createEvent({
           date,
           type: formType,
+          session: formSession,
           title: formTitle,
           description: formDesc,
           teamMemberId: formMemberId,
@@ -107,8 +122,8 @@ export function DayDetailSheet({
       resetForm();
       setShowForm(false);
       onEventChange();
-    } catch (err: any) {
-      setError(err.message || "Failed to save");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -120,8 +135,8 @@ export function DayDetailSheet({
     try {
       await deleteEvent(id);
       onEventChange();
-    } catch (err: any) {
-      setError(err.message || "Failed to delete");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -197,6 +212,11 @@ export function DayDetailSheet({
                           style={{ backgroundColor: ev.teamMember.color }}
                         />
                         {ev.teamMember.name}
+                      </span>
+                    )}
+                    {ev.session !== "FULL_DAY" && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">
+                        {ev.session}
                       </span>
                     )}
                   </div>
@@ -275,6 +295,23 @@ export function DayDetailSheet({
                     {teamMembers.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                    Duration
+                  </label>
+                  <select
+                    value={formSession}
+                    onChange={(e) => setFormSession(e.target.value as EventSession)}
+                    className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
+                  >
+                    {SESSION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>

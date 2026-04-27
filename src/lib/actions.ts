@@ -24,12 +24,32 @@ export type SafeEvent = {
   id: string;
   date: string;
   type: string;
+  session: string;
   title: string | null;
   description: string | null;
   teamMemberId: string | null;
   teamMember: { name: string; color: string } | null;
   createdAt: Date;
 };
+
+function wfhUnitsForSession(session: string) {
+  return session === "AM" || session === "PM" ? 0.5 : 1;
+}
+
+async function getWeeklyWfhUnits(teamMemberId: string, date: string, excludeId?: string) {
+  const { start, end } = getISOWeekBounds(date);
+  const events = await prisma.event.findMany({
+    where: {
+      teamMemberId,
+      type: "WFH",
+      date: { gte: start, lte: end },
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+    select: { session: true },
+  });
+
+  return events.reduce((sum, event) => sum + wfhUnitsForSession(event.session), 0);
+}
 
 // --- Team Members ---
 export async function getTeamMembers() {
@@ -72,6 +92,7 @@ export async function getEvents() {
       id: true,
       date: true,
       type: true,
+      session: true,
       title: true,
       description: true,
       teamMemberId: true,
@@ -93,6 +114,7 @@ export async function getEventsForMonth(year: number, month: number) {
       id: true,
       date: true,
       type: true,
+      session: true,
       title: true,
       description: true,
       teamMemberId: true,
@@ -110,6 +132,7 @@ export async function getEventsForDay(date: string) {
       id: true,
       date: true,
       type: true,
+      session: true,
       title: true,
       description: true,
       teamMemberId: true,
@@ -143,21 +166,16 @@ export async function getWeeklyPlanForCurrentWeek() {
 export async function createEvent(data: {
   date: string;
   type: string;
+  session?: string;
   title?: string;
   description?: string;
   teamMemberId?: string;
 }) {
   // Validate WFH limit
   if (data.type === "WFH" && data.teamMemberId) {
-    const { start, end } = getISOWeekBounds(data.date);
-    const count = await prisma.event.count({
-      where: {
-        teamMemberId: data.teamMemberId,
-        type: "WFH",
-        date: { gte: start, lte: end },
-      },
-    });
-    if (count >= 2) {
+    const currentUnits = await getWeeklyWfhUnits(data.teamMemberId, data.date);
+    const incomingUnits = wfhUnitsForSession(data.session || "FULL_DAY");
+    if (currentUnits + incomingUnits > 2) {
       throw new Error(
         "WFH limit reached (2/2 this week). Delete or edit an existing entry first."
       );
@@ -168,6 +186,7 @@ export async function createEvent(data: {
     data: {
       date: data.date,
       type: data.type,
+      session: data.session || "FULL_DAY",
       title: data.title || null,
       description: data.description || null,
       teamMemberId: data.teamMemberId || null,
@@ -176,6 +195,7 @@ export async function createEvent(data: {
       id: true,
       date: true,
       type: true,
+      session: true,
       title: true,
       description: true,
       teamMemberId: true,
@@ -190,6 +210,7 @@ export async function updateEvent(
   data: {
     date?: string;
     type?: string;
+    session?: string;
     title?: string;
     description?: string;
     teamMemberId?: string | null;
@@ -197,16 +218,9 @@ export async function updateEvent(
 ) {
   // Validate WFH limit if changing to WFH or changing date
   if (data.type === "WFH" && data.teamMemberId && data.date) {
-    const { start, end } = getISOWeekBounds(data.date);
-    const count = await prisma.event.count({
-      where: {
-        teamMemberId: data.teamMemberId,
-        type: "WFH",
-        date: { gte: start, lte: end },
-        NOT: { id },
-      },
-    });
-    if (count >= 2) {
+    const currentUnits = await getWeeklyWfhUnits(data.teamMemberId, data.date, id);
+    const incomingUnits = wfhUnitsForSession(data.session || "FULL_DAY");
+    if (currentUnits + incomingUnits > 2) {
       throw new Error(
         "WFH limit reached (2/2 this week). Delete or edit an existing entry first."
       );
@@ -218,6 +232,7 @@ export async function updateEvent(
     data: {
       ...(data.date && { date: data.date }),
       ...(data.type && { type: data.type }),
+      ...(data.session && { session: data.session }),
       title: data.title,
       description: data.description,
       ...(data.teamMemberId !== undefined && {
@@ -228,6 +243,7 @@ export async function updateEvent(
       id: true,
       date: true,
       type: true,
+      session: true,
       title: true,
       description: true,
       teamMemberId: true,

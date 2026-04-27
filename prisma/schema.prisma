@@ -18,6 +18,7 @@ model Event {
   id           String   @id @default(cuid())
   date         String   // YYYY-MM-DD
   type         String   // HOLIDAY, MEDICAL_LEAVE, WFH, PUBLIC_HOLIDAY, WEEKLY_PLAN
+  session      String   @default("FULL_DAY") // FULL_DAY, AM, PM
   title        String?
   description  String?
   teamMemberId String?

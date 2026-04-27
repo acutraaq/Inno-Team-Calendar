@@ -19,8 +19,8 @@ export default function CalendarPageClient({
   initialTeamMembers,
 }: CalendarPageClientProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<SafeEvent[]>(initialEvents);
-  const [teamMembers] = useState<SafeTeamMember[]>(initialTeamMembers);
+  const events: SafeEvent[] = initialEvents;
+  const teamMembers: SafeTeamMember[] = initialTeamMembers;
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     initialTeamMembers.map((m) => m.id)
   );
@@ -101,7 +101,7 @@ export default function CalendarPageClient({
             </div>
             <div>
               <h1 className="text-xl font-bold text-stone-800">
-                Innovation Team Calendar
+                Inno Team Planner
               </h1>
               <p className="text-sm text-stone-400">
                 Track holidays, WFH, and team plans

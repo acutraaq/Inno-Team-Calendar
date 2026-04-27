@@ -7,17 +7,17 @@ async function main() {
   const currentWeekStart = new Date(today)
   currentWeekStart.setDate(today.getDate() - today.getDay())
 
-  // Team members with soft pastel colors
+  // Team members with bumped pastel colors (more saturated for visibility)
   const members = [
-    { name: 'Izzat', color: '#AEC6CF' },
-    { name: 'Shikin', color: '#FFB7B2' },
-    { name: 'Ghash', color: '#B5EAD7' },
-    { name: 'Haneeda', color: '#C3B1E1' },
-    { name: 'Farhana', color: '#FFDAC1' },
-    { name: 'Thanesh', color: '#FFFFB5' },
-    { name: 'Hazim', color: '#FF9AA2' },
-    { name: 'Fahad', color: '#A2D2FF' },
-    { name: 'Hakim', color: '#C1E1C1' },
+    { name: 'Izzat', color: '#7EB5C4' },
+    { name: 'Shikin', color: '#FF8A80' },
+    { name: 'Ghash', color: '#80CBC4' },
+    { name: 'Haneeda', color: '#B39DDB' },
+    { name: 'Farhana', color: '#FFAB91' },
+    { name: 'Thanesh', color: '#FFF176' },
+    { name: 'Hazim', color: '#FF7043' },
+    { name: 'Fahad', color: '#64B5F6' },
+    { name: 'Hakim', color: '#AED581' },
   ]
 
   for (const member of members) {
@@ -68,6 +68,7 @@ async function main() {
       data: {
         date: date.toISOString().split('T')[0],
         type: 'WFH',
+        session: i === 0 ? 'AM' : 'FULL_DAY',
         title: 'Work From Home',
         teamMemberId: wfhMembers[i].id,
       },

@@ -1,14 +1,254 @@
+
+> inno-team-calendar@0.1.0 dev
+> next dev
+
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.3:3000
 - Environments: .env
-✓ Ready in 154ms
-⨯ Another next dev server is already running.
+✓ Ready in 142ms
 
-- Local:        http://localhost:3002
-- PID:          68395
-- Dir:          /Users/izzatnasri/Code/Personal/Inno Team Calendar
-- Log:          .next/dev/logs/next-development.log
+ GET / 200 in 131ms (next.js: 70ms, application-code: 61ms)
+✓ Compiled in 21ms
+✓ Compiled in 73ms
+✓ Compiled in 13ms
+⨯ Error [PrismaClientValidationError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
 
-Run kill 68395 to stop it.
-[?25h
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return {imported module ./src/lib/prisma.ts}["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at <unknown> (src/lib/actions.ts:89:23)
+    at async Home (src/app/page.tsx:7:33)
+  87 | // --- Events ---
+  88 | export async function getEvents() {
+> 89 |   return prisma.event.findMany({
+     |                       ^
+  90 |     orderBy: { date: "asc" },
+  91 |     select: {
+  92 |       id: true, {
+  clientVersion: '5.22.0',
+  digest: '1027126321'
+}
+ GET / 500 in 82ms (next.js: 35ms, application-code: 48ms)
+[browser] Uncaught PrismaClientValidationError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
+
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at resolveErrorDev (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:1919:127)
+    at processFullStringRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2434:44)
+    at processFullBinaryRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2393:29)
+    at processBinaryChunk (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2502:241)
+    at progress (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2689:31)
+⨯ Error [PrismaClientValidationError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
+
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return {imported module ./src/lib/prisma.ts}["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at <unknown> (src/lib/actions.ts:89:23)
+    at async Home (src/app/page.tsx:7:33)
+  87 | // --- Events ---
+  88 | export async function getEvents() {
+> 89 |   return prisma.event.findMany({
+     |                       ^
+  90 |     orderBy: { date: "asc" },
+  91 |     select: {
+  92 |       id: true, {
+  clientVersion: '5.22.0',
+  digest: '1027126321'
+}
+ GET / 500 in 64ms (next.js: 4ms, application-code: 60ms)
+[browser] Uncaught PrismaClientValidationError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
+
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at resolveErrorDev (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:1919:127)
+    at processFullStringRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2434:44)
+    at processFullBinaryRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2393:29)
+    at processBinaryChunk (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2502:241)
+    at progress (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2689:31)
+⨯ Error [PrismaClientValidationError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
+
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return {imported module ./src/lib/prisma.ts}["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at <unknown> (src/lib/actions.ts:89:23)
+    at async Home (src/app/page.tsx:7:33)
+  87 | // --- Events ---
+  88 | export async function getEvents() {
+> 89 |   return prisma.event.findMany({
+     |                       ^
+  90 |     orderBy: { date: "asc" },
+  91 |     select: {
+  92 |       id: true, {
+  clientVersion: '5.22.0',
+  digest: '1027126321'
+}
+ GET / 500 in 36ms (next.js: 8ms, application-code: 28ms)
+[browser] Uncaught PrismaClientValidationError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany()` invocation in
+/Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/server/chunks/ssr/[root-of-the-server]__0-.ke00._.js:144:145
+
+  141     });
+  142 }
+  143 async function getEvents() {
+→ 144     return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].event.findMany({
+            orderBy: {
+              date: "asc"
+            },
+            select: {
+              id: true,
+              date: true,
+              type: true,
+              session: true,
+              ~~~~~~~
+              title: true,
+              description: true,
+              teamMemberId: true,
+              teamMember: {
+                select: {
+                  name: true,
+                  color: true
+                }
+              },
+              createdAt: true
+            }
+          })
+
+Unknown field `session` for select statement on model `Event`. Available options are marked with ?.
+    at resolveErrorDev (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:1919:127)
+    at processFullStringRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2434:44)
+    at processFullBinaryRow (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2393:29)
+    at processBinaryChunk (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2502:241)
+    at progress (file:///Users/izzatnasri/Code/Personal/Inno Team Calendar/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2689:31)

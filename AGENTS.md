@@ -1,6 +1,6 @@
-# Inno Team Calendar - Project Context
+# Inno Team Planner - Project Context
 
-This is the Innovation Team Calendar webapp.
+This is the Inno Team Planner webapp.
 
 ## Tech Stack
 - Next.js 15 (App Router) + TypeScript
@@ -11,7 +11,16 @@ This is the Innovation Team Calendar webapp.
 
 ## Team Members
 - Izzat, Shikin, Ghash, Haneeda, Farhana, Thanesh, Hazim, Fahad, Hakim
-- Each member has a unique soft pastel color for calendar indicators.
+- Each member has a unique pastel color (bumped saturation for visibility):
+  - Izzat: #7EB5C4 (teal)
+  - Shikin: #FF8A80 (coral-red)
+  - Ghash: #80CBC4 (mint-teal)
+  - Haneeda: #B39DDB (lavender)
+  - Farhana: #FFAB91 (peach)
+  - Thanesh: #FFF176 (yellow)
+  - Hazim: #FF7043 (orange)
+  - Fahad: #64B5F6 (sky-blue)
+  - Hakim: #AED581 (green)
 
 ## Key Rules
 - WFH is limited to 2 days per member per week.
