@@ -63,17 +63,22 @@ async function main() {
     }
   })
 
+  const HOLIDAY_NAME_OVERRIDES: Record<string, string> = {
+    'Vesak Day': 'Wesak Day',
+  }
+
   for (const holiday of myHolidays) {
     if (holiday.type === 'public') {
       const holidayDate = holiday.date.split(' ')[0] // e.g. "2026-05-01"
+      const title = HOLIDAY_NAME_OVERRIDES[holiday.name] ?? holiday.name
       await prisma.event.upsert({
         where: { id: `holiday-${holidayDate}-${holiday.name.replace(/\s+/g, '-')}` },
-        update: {},
+        update: { title },
         create: {
           id: `holiday-${holidayDate}-${holiday.name.replace(/\s+/g, '-')}`,
           date: holidayDate,
           type: 'PUBLIC_HOLIDAY',
-          title: holiday.name,
+          title,
         },
       })
     }
