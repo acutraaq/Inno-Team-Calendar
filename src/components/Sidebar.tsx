@@ -3,7 +3,7 @@
 import React from "react";
 import { SafeTeamMember } from "@/types";
 import { Users } from "lucide-react";
-import { cn, getMemberColorClass } from "@/lib/utils";
+import { cn, getEventTypeBgClass } from "@/lib/utils";
 
 interface SidebarProps {
   teamMembers: SafeTeamMember[];
@@ -13,14 +13,17 @@ interface SidebarProps {
   onToggleType: (type: string) => void;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  HOLIDAY: "Holiday",
-  MEDICAL_LEAVE: "Medical Leave",
-  WFH: "Work From Home",
-  PUBLIC_HOLIDAY: "Public Holiday",
-  WEEKLY_PLAN: "Weekly Plan",
-  MEETING: "Meeting / Event",
-};
+const TYPE_LABELS: { type: string; label: string }[] = [
+  { type: "ANNUAL_LEAVE",  label: "Annual Leave (AL)" },
+  { type: "HALFDAY",       label: "Half Day" },
+  { type: "FLEXI_HALFDAY", label: "Flexi Half Day" },
+  { type: "MEDICAL_LEAVE", label: "MC (Medical Leave)" },
+  { type: "WFH",           label: "WFH" },
+  { type: "TRAINING",      label: "Training" },
+  { type: "MEETING",       label: "Meeting" },
+  { type: "EVENT",         label: "Event" },
+  { type: "PUBLIC_HOLIDAY",label: "Public Holiday" },
+];
 
 export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTypeFilter, onToggleType }: SidebarProps) {
   return (
@@ -51,9 +54,6 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
                 onChange={() => onToggleMember(member.id)}
                 className="w-3.5 h-3.5 accent-stone-400 rounded cursor-pointer"
               />
-              <span
-                className={cn("w-3 h-3 rounded-full flex-shrink-0", getMemberColorClass(member.color))}
-              />
               <span className="text-sm text-stone-700 group-hover:text-stone-900">
                 {member.name}
               </span>
@@ -66,7 +66,7 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
         </div>
 
         <div className="flex flex-col gap-1">
-          {Object.entries(TYPE_LABELS).map(([type, label]) => (
+          {TYPE_LABELS.filter(t => t.label).map(({ type, label }) => (
             <label
               key={type}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md cursor-pointer
@@ -78,7 +78,8 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
                 onChange={() => onToggleType(type)}
                 className="w-3.5 h-3.5 accent-stone-400 rounded cursor-pointer"
               />
-              <span className="text-sm font-medium text-stone-700">{label}</span>
+              <span className={cn("w-3 h-3 rounded-full flex-shrink-0", getEventTypeBgClass(type))} />
+              <span className="text-sm text-stone-700">{label}</span>
             </label>
           ))}
         </div>

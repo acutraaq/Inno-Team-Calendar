@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
-import { cn, getMemberColorClass } from "@/lib/utils";
+import { cn, getEventTypeBgClass } from "@/lib/utils";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
 
 function getErrorMessage(error: unknown) {
@@ -21,37 +21,37 @@ interface DayDetailSheetProps {
 }
 
 const TYPE_OPTIONS: { value: EventType; label: string }[] = [
-  { value: "HOLIDAY", label: "Holiday" },
-  { value: "MEDICAL_LEAVE", label: "Medical Leave" },
-  { value: "WFH", label: "Work From Home" },
-  { value: "PUBLIC_HOLIDAY", label: "Public Holiday" },
-  { value: "WEEKLY_PLAN", label: "Weekly Plan" },
-  { value: "MEETING", label: "Meeting / Event" },
+  { value: "ANNUAL_LEAVE",  label: "Annual Leave (AL)" },
+  { value: "HALFDAY",       label: "Half Day" },
+  { value: "FLEXI_HALFDAY", label: "Flexi Half Day" },
+  { value: "MEDICAL_LEAVE", label: "MC (Medical Leave)" },
+  { value: "WFH",           label: "WFH (Work From Home)" },
+  { value: "TRAINING",      label: "Training" },
+  { value: "MEETING",       label: "Meeting" },
+  { value: "EVENT",         label: "Event" },
+  { value: "PUBLIC_HOLIDAY",label: "Public Holiday" },
 ];
-
-const TYPE_COLORS: Record<EventType, string> = {
-  HOLIDAY: "bg-[#C3B1E1]",
-  MEDICAL_LEAVE: "bg-[#AEC6CF]",
-  WFH: "bg-[#B5EAD7]",
-  PUBLIC_HOLIDAY: "bg-stone-300",
-  WEEKLY_PLAN: "bg-[#FFDAC1]",
-  MEETING: "bg-[#FFAB91]",
-};
 
 const TYPE_TEXT: Record<EventType, string> = {
-  HOLIDAY: "Holiday",
-  MEDICAL_LEAVE: "Medical Leave",
-  WFH: "Work From Home",
-  PUBLIC_HOLIDAY: "Public Holiday",
-  WEEKLY_PLAN: "Weekly Plan",
-  MEETING: "Meeting / Event",
+  ANNUAL_LEAVE:  "AL",
+  HALFDAY:       "Half Day",
+  FLEXI_HALFDAY: "Flexi HD",
+  MEDICAL_LEAVE: "MC",
+  WFH:           "WFH",
+  TRAINING:      "Training",
+  MEETING:       "Meeting",
+  EVENT:         "Event",
+  PUBLIC_HOLIDAY:"Public Holiday",
 };
 
-const SESSION_OPTIONS: { value: EventSession; label: string }[] = [
-  { value: "FULL_DAY", label: "Full Day" },
-  { value: "AM", label: "AM (Half Day)" },
-  { value: "PM", label: "PM (Half Day)" },
-];
+// Types that require or allow a team member selection
+const MEMBER_REQUIRED_TYPES: EventType[] = ["ANNUAL_LEAVE", "HALFDAY", "FLEXI_HALFDAY", "MEDICAL_LEAVE", "WFH"];
+const MEMBER_OPTIONAL_TYPES: EventType[] = ["TRAINING", "MEETING", "EVENT"];
+
+// Types where session (AM/PM) is selectable
+const SESSION_TYPES: EventType[] = ["WFH", "ANNUAL_LEAVE", "HALFDAY", "FLEXI_HALFDAY"];
+// Types that force AM/PM only (no FULL_DAY)
+const HALFDAY_ONLY_TYPES: EventType[] = ["HALFDAY", "FLEXI_HALFDAY"];
 
 export function DayDetailSheet({
   date,
@@ -63,7 +63,7 @@ export function DayDetailSheet({
 }: DayDetailSheetProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formType, setFormType] = useState<string>("WFH");
+  const [formType, setFormType] = useState<EventType>("WFH");
   const [formSession, setFormSession] = useState<EventSession>("FULL_DAY");
   const [formTitle, setFormTitle] = useState("");
   const [formDesc, setFormDesc] = useState("");
@@ -84,6 +84,15 @@ export function DayDetailSheet({
     setEditingId(null);
   };
 
+  const handleTypeChange = (type: EventType) => {
+    setFormType(type);
+    if (HALFDAY_ONLY_TYPES.includes(type)) {
+      setFormSession("AM");
+    } else if (!SESSION_TYPES.includes(type)) {
+      setFormSession("FULL_DAY");
+    }
+  };
+
   const handleAddClick = () => {
     resetForm();
     setShowForm(true);
@@ -91,7 +100,7 @@ export function DayDetailSheet({
 
   const handleEditClick = (event: SafeEvent) => {
     setEditingId(event.id);
-    setFormType(event.type);
+    setFormType(event.type as EventType);
     setFormTitle(event.title || "");
     setFormDesc(event.description || "");
     setFormMemberId(event.teamMemberId || "");
@@ -154,7 +163,6 @@ export function DayDetailSheet({
 
   if (!isOpen) return null;
 
-  // Parse date components locally to avoid UTC-offset date shifting for UTC+ timezones
   const [dateYear, dateMo, dateDay] = date.split("-").map(Number);
   const dateObj = new Date(dateYear, dateMo - 1, dateDay);
   const dateLabel = dateObj.toLocaleDateString("en-US", {
@@ -164,15 +172,18 @@ export function DayDetailSheet({
     day: "numeric",
   });
 
+  const isMemberRequired = MEMBER_REQUIRED_TYPES.includes(formType);
+  const showMember = isMemberRequired || MEMBER_OPTIONAL_TYPES.includes(formType);
+  const showSession = SESSION_TYPES.includes(formType);
+  const halfDayOnly = HALFDAY_ONLY_TYPES.includes(formType);
+
   return (
     <>
-      {/* Overlay */}
       <div
         className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-40 transition-opacity"
         onClick={onClose}
       />
 
-      {/* Sheet */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200/50">
           <div>
@@ -210,21 +221,17 @@ export function DayDetailSheet({
                 className="border border-stone-100 rounded-lg p-4 hover:shadow-sm transition-shadow group relative"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={cn(
-                        "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                        TYPE_COLORS[ev.type as EventType],
-                        "text-stone-800"
+                        "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider text-stone-800",
+                        getEventTypeBgClass(ev.type)
                       )}
                     >
-                      {TYPE_TEXT[ev.type as EventType]}
+                      {TYPE_TEXT[ev.type as EventType] ?? ev.type}
                     </span>
                     {ev.teamMember && (
-                      <span className="text-xs text-stone-500 flex items-center gap-1">
-                        <span
-                          className={cn("w-2 h-2 rounded-full inline-block", getMemberColorClass(ev.teamMember.color))}
-                        />
+                      <span className="text-xs text-stone-500">
                         {ev.teamMember.name}
                       </span>
                     )}
@@ -234,7 +241,6 @@ export function DayDetailSheet({
                       </span>
                     )}
                   </div>
-                  {/* Always visible on focus for keyboard users, hover-visible otherwise */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                     <button
                       type="button"
@@ -291,7 +297,7 @@ export function DayDetailSheet({
                   <select
                     id="formType"
                     value={formType}
-                    onChange={(e) => setFormType(e.target.value as EventType)}
+                    onChange={(e) => handleTypeChange(e.target.value as EventType)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
                   >
                     {TYPE_OPTIONS.map((opt) => (
@@ -302,9 +308,49 @@ export function DayDetailSheet({
                   </select>
                 </div>
 
+                {showMember && (
+                  <div>
+                    <label htmlFor="formMemberId" className="text-xs font-medium text-stone-500 mb-1.5 block">
+                      Team Member {isMemberRequired && <span className="text-red-400">(required)</span>}
+                    </label>
+                    <select
+                      id="formMemberId"
+                      value={formMemberId}
+                      onChange={(e) => setFormMemberId(e.target.value)}
+                      required={isMemberRequired}
+                      className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
+                    >
+                      <option value="">Select a member...</option>
+                      {teamMembers.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {showSession && (
+                  <div>
+                    <label htmlFor="formSession" className="text-xs font-medium text-stone-500 mb-1.5 block">
+                      Session
+                    </label>
+                    <select
+                      id="formSession"
+                      value={formSession}
+                      onChange={(e) => setFormSession(e.target.value as EventSession)}
+                      className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
+                    >
+                      {!halfDayOnly && <option value="FULL_DAY">Full Day</option>}
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="formEndDate" className="text-xs font-medium text-stone-500 mb-1.5 block">
-                    End Date (Optional)
+                    End Date <span className="text-stone-400">(optional)</span>
                   </label>
                   <input
                     id="formEndDate"
@@ -317,46 +363,8 @@ export function DayDetailSheet({
                 </div>
 
                 <div>
-                  <label htmlFor="formMemberId" className="text-xs font-medium text-stone-500 mb-1.5 block">
-                    Team Member {formType === "WFH" && "(required)"}
-                  </label>
-                  <select
-                    id="formMemberId"
-                    value={formMemberId}
-                    onChange={(e) => setFormMemberId(e.target.value)}
-                    required={formType === "WFH"}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
-                  >
-                    <option value="">Select a member...</option>
-                    {teamMembers.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="formSession" className="text-xs font-medium text-stone-500 mb-1.5 block">
-                    Duration
-                  </label>
-                  <select
-                    id="formSession"
-                    value={formSession}
-                    onChange={(e) => setFormSession(e.target.value as EventSession)}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
-                  >
-                    {SESSION_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
                   <label htmlFor="formTitle" className="text-xs font-medium text-stone-500 mb-1.5 block">
-                    Title
+                    Title <span className="text-stone-400">(optional)</span>
                   </label>
                   <input
                     id="formTitle"
@@ -370,7 +378,7 @@ export function DayDetailSheet({
 
                 <div>
                   <label htmlFor="formDesc" className="text-xs font-medium text-stone-500 mb-1.5 block">
-                    Description
+                    Description <span className="text-stone-400">(optional)</span>
                   </label>
                   <textarea
                     id="formDesc"
@@ -411,7 +419,6 @@ export function DayDetailSheet({
         </div>
       </div>
 
-      {/* Inline delete confirmation dialog */}
       {deleteConfirmId && (
         <>
           <div className="fixed inset-0 bg-stone-900/40 z-[60]" onClick={() => setDeleteConfirmId(null)} />

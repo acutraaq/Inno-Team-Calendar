@@ -39,7 +39,7 @@ async function main() {
     create: {
       id: 'seed-weekly-plan-1',
       date: formattedWeekDate,
-      type: 'WEEKLY_PLAN',
+      type: 'EVENT',
       title: 'Sprint Planning & Architecture Review',
       description: 'Focus on Q2 roadmap planning and system design reviews',
     },

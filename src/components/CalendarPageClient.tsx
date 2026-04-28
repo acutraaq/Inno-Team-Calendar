@@ -27,12 +27,15 @@ export default function CalendarPageClient({
     initialTeamMembers.map((m) => m.id)
   );
   const [selectedTypes, setSelectedTypes] = useState<EventType[]>([
-    "HOLIDAY",
+    "ANNUAL_LEAVE",
+    "HALFDAY",
+    "FLEXI_HALFDAY",
     "MEDICAL_LEAVE",
     "WFH",
-    "PUBLIC_HOLIDAY",
-    "WEEKLY_PLAN",
+    "TRAINING",
     "MEETING",
+    "EVENT",
+    "PUBLIC_HOLIDAY",
   ]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export default function CalendarPageClient({
   const weeklyPlan = useMemo(() => {
     const weekStartStr = format(startOfWeek(new Date()), "yyyy-MM-dd");
     return filteredEvents.find(
-      (e) => e.type === "WEEKLY_PLAN" && e.date === weekStartStr
+      (e) => e.type === "EVENT" && e.date === weekStartStr
     );
   }, [filteredEvents]);
 

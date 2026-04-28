@@ -1,4 +1,4 @@
-export type EventType = "HOLIDAY" | "MEDICAL_LEAVE" | "WFH" | "PUBLIC_HOLIDAY" | "WEEKLY_PLAN" | "MEETING";
+export type EventType = "ANNUAL_LEAVE" | "HALFDAY" | "FLEXI_HALFDAY" | "TRAINING" | "EVENT" | "MEDICAL_LEAVE" | "WFH" | "PUBLIC_HOLIDAY" | "MEETING";
 export type EventSession = "FULL_DAY" | "AM" | "PM";
 
 export type SafeEvent = {

@@ -1,5 +1,5 @@
 import React from "react";
-import { cn, getMemberColorClass } from "@/lib/utils";
+import { cn, getEventTypeBgClass } from "@/lib/utils";
 
 interface DayCellProps {
   day: number;
@@ -57,39 +57,24 @@ function DayCellInner({
         {day}
       </span>
       <div className="flex flex-col gap-[2px] mt-auto">
-        {visibleEvents.map((event) => (
-          <div
-            key={event.id}
-            className="flex items-center gap-1.5 text-xs truncate"
-            title={event.title || event.type}
-          >
-            {(event.teamMember || event.type === "PUBLIC_HOLIDAY" || event.type === "WEEKLY_PLAN" || event.type === "MEETING") && (
+        {visibleEvents.map((event) => {
+          const label = event.teamMember
+            ? `${event.teamMember.name}${event.session !== "FULL_DAY" ? ` (${event.session})` : ""}`
+            : event.title || event.type.replace(/_/g, " ");
+
+          return (
+            <div
+              key={event.id}
+              className="flex items-center gap-1.5 text-xs truncate"
+              title={label}
+            >
               <span
-                className={cn(
-                  "w-2 h-2 rounded-full flex-shrink-0",
-                  event.type === "PUBLIC_HOLIDAY"
-                    ? "bg-[#a8a29e]"
-                    : event.type === "WEEKLY_PLAN"
-                    ? "bg-[#FFDAC1]"
-                    : event.type === "MEETING"
-                    ? "bg-[#FFAB91]"
-                    : getMemberColorClass(event.teamMember?.color)
-                )}
+                className={cn("w-2 h-2 rounded-full flex-shrink-0", getEventTypeBgClass(event.type))}
               />
-            )}
-            <span className="truncate text-stone-700 font-medium">
-              {event.type === "WEEKLY_PLAN"
-                ? event.title || "Weekly Plan"
-                : event.type === "PUBLIC_HOLIDAY"
-                ? event.title || "Holiday"
-                : event.type === "MEETING"
-                ? event.title || "Meeting"
-                : `${event.teamMember?.name || "Event"}${
-                    event.session !== "FULL_DAY" ? ` (${event.session})` : ""
-                  }`}
-            </span>
-          </div>
-        ))}
+              <span className="truncate text-stone-700 font-medium">{label}</span>
+            </div>
+          );
+        })}
         {events.length > 4 && (
           <span className="text-[11px] font-medium text-stone-500 pl-1">
             +{events.length - 4} more

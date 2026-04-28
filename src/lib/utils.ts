@@ -5,17 +5,29 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getMemberColorClass(colorHex?: string | null): string {
+export const EVENT_TYPE_COLORS: Record<string, string> = {
+  ANNUAL_LEAVE:  "#93C5FD",
+  HALFDAY:       "#C4B5FD",
+  FLEXI_HALFDAY: "#86EFAC",
+  TRAINING:      "#FCD34D",
+  EVENT:         "#FFDAC1",
+  MEDICAL_LEAVE: "#AEC6CF",
+  WFH:           "#B5EAD7",
+  PUBLIC_HOLIDAY:"#D1D5DB",
+  MEETING:       "#FFAB91",
+};
+
+export function getEventTypeBgClass(type: string): string {
   const map: Record<string, string> = {
-    "#7EB5C4": "bg-[#7EB5C4]",
-    "#FF8A80": "bg-[#FF8A80]",
-    "#80CBC4": "bg-[#80CBC4]",
-    "#B39DDB": "bg-[#B39DDB]",
-    "#FFAB91": "bg-[#FFAB91]",
-    "#FFF176": "bg-[#FFF176]",
-    "#FF7043": "bg-[#FF7043]",
-    "#64B5F6": "bg-[#64B5F6]",
-    "#AED581": "bg-[#AED581]",
+    ANNUAL_LEAVE:  "bg-[#93C5FD]",
+    HALFDAY:       "bg-[#C4B5FD]",
+    FLEXI_HALFDAY: "bg-[#86EFAC]",
+    TRAINING:      "bg-[#FCD34D]",
+    EVENT:         "bg-[#FFDAC1]",
+    MEDICAL_LEAVE: "bg-[#AEC6CF]",
+    WFH:           "bg-[#B5EAD7]",
+    PUBLIC_HOLIDAY:"bg-[#D1D5DB]",
+    MEETING:       "bg-[#FFAB91]",
   };
-  return colorHex && map[colorHex] ? map[colorHex] : "bg-stone-300";
+  return map[type] ?? "bg-stone-300";
 }
