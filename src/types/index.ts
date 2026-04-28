@@ -5,8 +5,8 @@ export type SafeEvent = {
   id: string;
   date: string;
   endDate: string | null;
-  type: string;
-  session: string;
+  type: EventType;
+  session: EventSession;
   title: string | null;
   description: string | null;
   teamMemberId: string | null;

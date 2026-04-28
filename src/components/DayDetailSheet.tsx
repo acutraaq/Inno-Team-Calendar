@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EVENT_TYPE_ICONS, EVENT_TYPE_ICON_COLORS, EVENT_TYPE_PILL_BG } from "./EventTypeIcon";
-import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
+import {
+  EVENT_TYPE_ICONS,
+  EVENT_TYPE_ICON_COLORS,
+  EVENT_TYPE_PILL_BG,
+  EVENT_TYPE_LABEL,
+  EVENT_TYPE_SHORT,
+} from "./EventTypeIcon";
+import { createEvent, updateEvent, deleteEvent, getWeeklyWfhUsage } from "@/lib/actions";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected error";
@@ -21,29 +27,17 @@ interface DayDetailSheetProps {
   onEventChange: () => void;
 }
 
-const TYPE_OPTIONS: { value: EventType; label: string }[] = [
-  { value: "ANNUAL_LEAVE",  label: "Annual Leave (AL)" },
-  { value: "HALFDAY",       label: "Half Day" },
-  { value: "FLEXI_HALFDAY", label: "Flexi Half Day" },
-  { value: "MEDICAL_LEAVE", label: "MC (Medical Leave)" },
-  { value: "WFH",           label: "WFH (Work From Home)" },
-  { value: "TRAINING",      label: "Training" },
-  { value: "MEETING",       label: "Meeting" },
-  { value: "EVENT",         label: "Event" },
-  { value: "PUBLIC_HOLIDAY",label: "Public Holiday" },
+const TYPE_ORDER: EventType[] = [
+  "ANNUAL_LEAVE",
+  "HALFDAY",
+  "FLEXI_HALFDAY",
+  "MEDICAL_LEAVE",
+  "WFH",
+  "TRAINING",
+  "MEETING",
+  "EVENT",
+  "PUBLIC_HOLIDAY",
 ];
-
-const TYPE_TEXT: Record<EventType, string> = {
-  ANNUAL_LEAVE:  "AL",
-  HALFDAY:       "Half Day",
-  FLEXI_HALFDAY: "Flexi HD",
-  MEDICAL_LEAVE: "MC",
-  WFH:           "WFH",
-  TRAINING:      "Training",
-  MEETING:       "Meeting",
-  EVENT:         "Event",
-  PUBLIC_HOLIDAY:"Public Holiday",
-};
 
 // Types that require or allow a team member selection
 const MEMBER_REQUIRED_TYPES: EventType[] = ["ANNUAL_LEAVE", "HALFDAY", "FLEXI_HALFDAY", "MEDICAL_LEAVE", "WFH"];
@@ -73,6 +67,22 @@ export function DayDetailSheet({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [wfhUsage, setWfhUsage] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!showForm || formType !== "WFH" || !formMemberId) return;
+    let cancelled = false;
+    getWeeklyWfhUsage(formMemberId, date, editingId ?? undefined)
+      .then((units) => {
+        if (!cancelled) setWfhUsage(units);
+      })
+      .catch(() => {
+        if (!cancelled) setWfhUsage(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showForm, formType, formMemberId, date, editingId]);
 
   const resetForm = () => {
     setFormType("WFH");
@@ -101,7 +111,7 @@ export function DayDetailSheet({
 
   const handleEditClick = (event: SafeEvent) => {
     setEditingId(event.id);
-    setFormType(event.type as EventType);
+    setFormType(event.type);
     setFormTitle(event.title || "");
     setFormDesc(event.description || "");
     setFormMemberId(event.teamMemberId || "");
@@ -148,15 +158,16 @@ export function DayDetailSheet({
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteConfirmId) return;
+    if (!deleteConfirmId || loading) return;
     const id = deleteConfirmId;
-    setDeleteConfirmId(null);
     setLoading(true);
     try {
       await deleteEvent(id);
+      setDeleteConfirmId(null);
       onEventChange();
     } catch (err: unknown) {
       setError(getErrorMessage(err));
+      setDeleteConfirmId(null);
     } finally {
       setLoading(false);
     }
@@ -234,7 +245,7 @@ export function DayDetailSheet({
                           )}
                         >
                           {Icon && <Icon className={cn("w-3 h-3", iconColor)} strokeWidth={2.5} />}
-                          {TYPE_TEXT[ev.type as EventType] ?? ev.type}
+                          {EVENT_TYPE_SHORT[ev.type] ?? ev.type}
                         </span>
                       );
                     })()}
@@ -308,9 +319,9 @@ export function DayDetailSheet({
                     onChange={(e) => handleTypeChange(e.target.value as EventType)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
                   >
-                    {TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                    {TYPE_ORDER.map((value) => (
+                      <option key={value} value={value}>
+                        {EVENT_TYPE_LABEL[value] ?? value}
                       </option>
                     ))}
                   </select>
@@ -353,6 +364,20 @@ export function DayDetailSheet({
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
                     </select>
+                  </div>
+                )}
+
+                {formType === "WFH" && formMemberId && wfhUsage !== null && (
+                  <div className={cn(
+                    "text-xs px-3 py-2 rounded-md border",
+                    wfhUsage >= 2
+                      ? "bg-rose-50 border-rose-200 text-rose-700"
+                      : wfhUsage >= 1.5
+                      ? "bg-amber-50 border-amber-200 text-amber-700"
+                      : "bg-stone-50 border-stone-200 text-stone-600"
+                  )}>
+                    {wfhUsage} / 2 WFH days used this week
+                    {editingId && " (excluding this entry)"}
                   </div>
                 )}
 
@@ -429,7 +454,7 @@ export function DayDetailSheet({
 
       {deleteConfirmId && (
         <>
-          <div className="fixed inset-0 bg-stone-900/40 z-[60]" onClick={() => setDeleteConfirmId(null)} />
+          <div className="fixed inset-0 bg-stone-900/40 z-[60]" onClick={() => !loading && setDeleteConfirmId(null)} />
           <div
             role="alertdialog"
             aria-modal="true"
@@ -447,16 +472,18 @@ export function DayDetailSheet({
               <button
                 type="button"
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+                disabled={loading}
+                className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                disabled={loading}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                Delete
+                {loading ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>

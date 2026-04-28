@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Pencil } from "lucide-react";
 
 interface WeeklyPlanBannerProps {
   plan: {
@@ -10,9 +10,10 @@ interface WeeklyPlanBannerProps {
     title: string | null;
     description: string | null;
   } | null;
+  onEdit?: () => void;
 }
 
-export function WeeklyPlanBanner({ plan }: WeeklyPlanBannerProps) {
+export function WeeklyPlanBanner({ plan, onEdit }: WeeklyPlanBannerProps) {
   if (!plan) return null;
 
   return (
@@ -32,6 +33,16 @@ export function WeeklyPlanBanner({ plan }: WeeklyPlanBannerProps) {
           <p className="text-sm text-stone-700 font-medium mt-1">{plan.description}</p>
         )}
       </div>
+      {onEdit && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="p-2 rounded-lg bg-white/60 hover:bg-white/90 transition-colors text-[#b45309] shadow-sm"
+          aria-label="Edit weekly plan"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

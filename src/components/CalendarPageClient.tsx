@@ -23,6 +23,7 @@ export default function CalendarPageClient({
 }: CalendarPageClientProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<SafeEvent[]>(initialEvents);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const teamMembers: SafeTeamMember[] = initialTeamMembers;
@@ -48,8 +49,13 @@ export default function CalendarPageClient({
 
   const fetchEvents = useCallback((date: Date) => {
     startTransition(async () => {
-      const fresh = await getEventsForMonth(date.getFullYear(), date.getMonth());
-      setEvents(fresh as SafeEvent[]);
+      try {
+        const fresh = await getEventsForMonth(date.getFullYear(), date.getMonth());
+        setEvents(fresh as SafeEvent[]);
+        setFetchError(null);
+      } catch (err) {
+        setFetchError(err instanceof Error ? err.message : "Failed to load events");
+      }
     });
   }, []);
 
@@ -74,7 +80,7 @@ export default function CalendarPageClient({
 
   const filteredEvents = useMemo(() => {
     return events.filter((e) => {
-      const typeMatch = selectedTypes.includes(e.type as EventType);
+      const typeMatch = selectedTypes.includes(e.type);
       const memberMatch =
         !e.teamMemberId || selectedMembers.includes(e.teamMemberId);
       return typeMatch && memberMatch;
@@ -82,11 +88,11 @@ export default function CalendarPageClient({
   }, [events, selectedMembers, selectedTypes]);
 
   const weeklyPlan = useMemo(() => {
-    const weekStartStr = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const weekStartStr = format(startOfWeek(currentDate), "yyyy-MM-dd");
     return filteredEvents.find(
       (e) => e.type === "EVENT" && e.date === weekStartStr
     );
-  }, [filteredEvents]);
+  }, [filteredEvents, currentDate]);
 
   const toggleMember = useCallback((id: string) => {
     setSelectedMembers((prev) =>
@@ -132,8 +138,10 @@ export default function CalendarPageClient({
         teamMembers={teamMembers}
         selectedMembers={selectedMembers}
         onToggleMember={toggleMember}
+        onSetMembers={setSelectedMembers}
         eventTypeFilter={selectedTypes}
         onToggleType={toggleType}
+        onSetTypes={(types) => setSelectedTypes(types as EventType[])}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -225,10 +233,24 @@ export default function CalendarPageClient({
                   title: weeklyPlan.title,
                   description: weeklyPlan.description,
                 }}
+                onEdit={() => handleDayClick(weeklyPlan.date)}
               />
             )}
 
-            {events.length > 0 && filteredEvents.length === 0 && (
+            {fetchError && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800 flex items-center justify-between gap-3">
+                <span>Couldn&apos;t load events: {fetchError}</span>
+                <button
+                  type="button"
+                  onClick={() => fetchEvents(currentDate)}
+                  className="text-xs font-semibold underline hover:no-underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {!fetchError && events.length > 0 && filteredEvents.length === 0 && (
               <div className="mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
                 Nothing to show — adjust the team member or event type filters in the sidebar.
               </div>

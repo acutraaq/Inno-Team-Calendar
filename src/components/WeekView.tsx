@@ -4,19 +4,12 @@ import { useMemo } from "react";
 import { addDays, startOfWeek, format, isSameDay } from "date-fns";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import { cn } from "@/lib/utils";
-import { EVENT_TYPE_ICONS, EVENT_TYPE_ICON_COLORS, EVENT_TYPE_PILL_BG } from "./EventTypeIcon";
-
-const TYPE_SHORT: Record<string, string> = {
-  ANNUAL_LEAVE:  "AL",
-  HALFDAY:       "½ Day",
-  FLEXI_HALFDAY: "Flexi HD",
-  MEDICAL_LEAVE: "MC",
-  WFH:           "WFH",
-  TRAINING:      "Training",
-  MEETING:       "Meeting",
-  EVENT:         "Event",
-  PUBLIC_HOLIDAY:"Public Holiday",
-};
+import {
+  EVENT_TYPE_ICONS,
+  EVENT_TYPE_ICON_COLORS,
+  EVENT_TYPE_PILL_BG,
+  EVENT_TYPE_SHORT,
+} from "./EventTypeIcon";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -92,7 +85,7 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                   )}
                 >
                   {PillIcon && <PillIcon className="w-3 h-3" strokeWidth={2.5} />}
-                  {TYPE_SHORT[ev.type] ?? ev.type}
+                  {EVENT_TYPE_SHORT[ev.type] ?? ev.type}
                 </span>
                 <span className="text-sm font-semibold text-stone-700">
                   {format(parseLocalDate(ev.date), "EEE, d MMM")}
@@ -185,7 +178,7 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                               )}
                             >
                               {Icon && <Icon className={cn("w-2.5 h-2.5 flex-shrink-0", iconColor)} strokeWidth={2.5} />}
-                              {TYPE_SHORT[ev.type] ?? ev.type}
+                              {EVENT_TYPE_SHORT[ev.type] ?? ev.type}
                               {ev.session !== "FULL_DAY" && (
                                 <span className="opacity-80">{ev.session}</span>
                               )}

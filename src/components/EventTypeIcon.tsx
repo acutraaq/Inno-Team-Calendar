@@ -32,6 +32,32 @@ export const EVENT_TYPE_ICON_COLORS: Record<string, string> = {
   PUBLIC_HOLIDAY: "text-orange-500",
 };
 
+// Long, descriptive labels — used in dropdowns and the sidebar filter list
+export const EVENT_TYPE_LABEL: Record<string, string> = {
+  ANNUAL_LEAVE:   "Annual Leave (AL)",
+  HALFDAY:        "Half Day",
+  FLEXI_HALFDAY:  "Flexi Half Day",
+  MEDICAL_LEAVE:  "MC (Medical Leave)",
+  WFH:            "WFH",
+  TRAINING:       "Training",
+  MEETING:        "Meeting",
+  EVENT:          "Event",
+  PUBLIC_HOLIDAY: "Public Holiday",
+};
+
+// Short labels for compact pills/chips in cells and weekly grid
+export const EVENT_TYPE_SHORT: Record<string, string> = {
+  ANNUAL_LEAVE:   "AL",
+  HALFDAY:        "Half Day",
+  FLEXI_HALFDAY:  "Flexi HD",
+  MEDICAL_LEAVE:  "MC",
+  WFH:            "WFH",
+  TRAINING:       "Training",
+  MEETING:        "Meeting",
+  EVENT:          "Event",
+  PUBLIC_HOLIDAY: "Public Holiday",
+};
+
 // Soft tinted pill backgrounds for type badges — pastel-friendly, AA contrast with -800 text
 export const EVENT_TYPE_PILL_BG: Record<string, string> = {
   ANNUAL_LEAVE:   "bg-cyan-100 text-cyan-800",
