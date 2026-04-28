@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { addDays, startOfWeek, format, isSameDay } from "date-fns";
 import { SafeEvent, SafeTeamMember } from "@/types";
-import { cn, getEventTypeBgClass } from "@/lib/utils";
+import { cn, getEventTypeBgClass, getEventBadgeBgClass } from "@/lib/utils";
 
 const TYPE_SHORT: Record<string, string> = {
   ANNUAL_LEAVE:  "AL",
@@ -173,11 +173,13 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                             key={ev.id}
                             className={cn(
                               "text-[10px] font-semibold px-1.5 py-0.5 rounded text-stone-800 inline-block leading-snug",
-                              getEventTypeBgClass(ev.type)
+                              getEventBadgeBgClass(ev.type, ev.session)
                             )}
                           >
                             {TYPE_SHORT[ev.type] ?? ev.type}
-                            {ev.session !== "FULL_DAY" && ` ${ev.session}`}
+                            {ev.session !== "FULL_DAY" && (
+                              <span className="ml-0.5 opacity-80">{ev.session}</span>
+                            )}
                           </span>
                         ))}
                       </div>

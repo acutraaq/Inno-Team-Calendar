@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
-import { cn, getEventTypeBgClass } from "@/lib/utils";
+import { cn, getEventBadgeBgClass } from "@/lib/utils";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
 
 function getErrorMessage(error: unknown) {
@@ -225,7 +225,7 @@ export function DayDetailSheet({
                     <span
                       className={cn(
                         "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider text-stone-800",
-                        getEventTypeBgClass(ev.type)
+                        getEventBadgeBgClass(ev.type, ev.session)
                       )}
                     >
                       {TYPE_TEXT[ev.type as EventType] ?? ev.type}

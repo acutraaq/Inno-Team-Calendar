@@ -1,5 +1,5 @@
 import React from "react";
-import { cn, getEventTypeBgClass } from "@/lib/utils";
+import { cn, getEventTypeBgClass, getEventBadgeBgClass } from "@/lib/utils";
 
 interface DayCellProps {
   day: number;
@@ -17,6 +17,8 @@ interface DayCellProps {
   }[];
   onClick: (dateStr: string) => void;
 }
+
+const HALFDAY_TYPES = new Set(["HALFDAY", "FLEXI_HALFDAY"]);
 
 function DayCellInner({
   day,
@@ -58,8 +60,11 @@ function DayCellInner({
       </span>
       <div className="flex flex-col gap-[2px] mt-auto">
         {visibleEvents.map((event) => {
+          const isHalfDay = HALFDAY_TYPES.has(event.type);
+          const sessionSuffix =
+            event.session !== "FULL_DAY" ? ` (${event.session})` : "";
           const label = event.teamMember
-            ? `${event.teamMember.name}${event.session !== "FULL_DAY" ? ` (${event.session})` : ""}`
+            ? `${event.teamMember.name}${sessionSuffix}`
             : event.title || event.type.replace(/_/g, " ");
 
           return (
@@ -69,7 +74,12 @@ function DayCellInner({
               title={label}
             >
               <span
-                className={cn("w-2 h-2 rounded-full flex-shrink-0", getEventTypeBgClass(event.type))}
+                className={cn(
+                  "w-2 h-2 rounded-full flex-shrink-0",
+                  isHalfDay
+                    ? getEventBadgeBgClass(event.type, event.session)
+                    : getEventTypeBgClass(event.type)
+                )}
               />
               <span className="truncate text-stone-700 font-medium">{label}</span>
             </div>

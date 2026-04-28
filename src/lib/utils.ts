@@ -17,6 +17,7 @@ export const EVENT_TYPE_COLORS: Record<string, string> = {
   MEETING:       "#FFAB91",
 };
 
+// Base color by type (used for dots, sidebar swatches, non-session-specific contexts)
 export function getEventTypeBgClass(type: string): string {
   const map: Record<string, string> = {
     ANNUAL_LEAVE:  "bg-[#93C5FD]",
@@ -30,4 +31,16 @@ export function getEventTypeBgClass(type: string): string {
     MEETING:       "bg-[#FFAB91]",
   };
   return map[type] ?? "bg-stone-300";
+}
+
+// Session-aware color for HALFDAY and FLEXI_HALFDAY badges:
+//   AM → lighter shade, PM → deeper shade
+export function getEventBadgeBgClass(type: string, session: string): string {
+  if (type === "HALFDAY") {
+    return session === "PM" ? "bg-[#A78BFA]" : "bg-[#C4B5FD]";
+  }
+  if (type === "FLEXI_HALFDAY") {
+    return session === "PM" ? "bg-[#34D399]" : "bg-[#86EFAC]";
+  }
+  return getEventTypeBgClass(type);
 }
