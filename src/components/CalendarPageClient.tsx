@@ -2,13 +2,15 @@
 
 import { useState, useMemo, useTransition, useCallback } from "react";
 import { SafeEvent, SafeTeamMember, EventType } from "@/types";
-import { format, addMonths, subMonths, startOfWeek } from "date-fns";
+import { format, addMonths, subMonths, addDays, startOfWeek } from "date-fns";
 import { CalendarGrid } from "@/components/CalendarGrid";
 import { Sidebar } from "@/components/Sidebar";
 import { WeeklyPlanBanner } from "@/components/WeeklyPlanBanner";
+import { WeekView } from "@/components/WeekView";
 import { DayDetailSheet } from "@/components/DayDetailSheet";
 import { getEventsForMonth } from "@/lib/actions";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, LayoutGrid, Rows3 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CalendarPageClientProps {
   initialEvents: SafeEvent[];
@@ -22,6 +24,7 @@ export default function CalendarPageClient({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<SafeEvent[]>(initialEvents);
   const [isPending, startTransition] = useTransition();
+  const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const teamMembers: SafeTeamMember[] = initialTeamMembers;
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     initialTeamMembers.map((m) => m.id)
@@ -50,10 +53,20 @@ export default function CalendarPageClient({
     });
   }, []);
 
-  const navigateMonth = useCallback((newDate: Date) => {
+  const navigate = useCallback((newDate: Date) => {
     setCurrentDate(newDate);
     fetchEvents(newDate);
   }, [fetchEvents]);
+
+  const handlePrev = useCallback(() => {
+    navigate(viewMode === "week" ? addDays(currentDate, -7) : subMonths(currentDate, 1));
+  }, [navigate, viewMode, currentDate]);
+
+  const handleNext = useCallback(() => {
+    navigate(viewMode === "week" ? addDays(currentDate, 7) : addMonths(currentDate, 1));
+  }, [navigate, viewMode, currentDate]);
+
+  const handleToday = useCallback(() => navigate(new Date()), [navigate]);
 
   const handleEventChange = useCallback(() => {
     fetchEvents(currentDate);
@@ -102,6 +115,17 @@ export default function CalendarPageClient({
       })
     : [];
 
+  // Navigation label
+  const navLabel = useMemo(() => {
+    if (isPending) return "Loading…";
+    if (viewMode === "week") {
+      const ws = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const we = addDays(ws, 6);
+      return `${format(ws, "d MMM")} – ${format(we, "d MMM yyyy")}`;
+    }
+    return format(currentDate, "MMMM yyyy");
+  }, [isPending, viewMode, currentDate]);
+
   return (
     <div className="flex h-screen bg-transparent">
       <Sidebar
@@ -120,9 +144,7 @@ export default function CalendarPageClient({
               <Calendar className="w-5 h-5 text-stone-600" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-stone-800">
-                Inno Team Planner
-              </h1>
+              <h1 className="text-xl font-bold text-stone-800">Inno Team Planner</h1>
               <p className="text-sm text-stone-500 font-medium">
                 Track holidays, WFH, and team plans
               </p>
@@ -130,30 +152,61 @@ export default function CalendarPageClient({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* View toggle */}
+            <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-1">
+              <button
+                type="button"
+                onClick={() => setViewMode("month")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  viewMode === "month"
+                    ? "bg-white text-stone-800 shadow-sm"
+                    : "text-stone-500 hover:text-stone-700"
+                )}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Month
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("week")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  viewMode === "week"
+                    ? "bg-white text-stone-800 shadow-sm"
+                    : "text-stone-500 hover:text-stone-700"
+                )}
+              >
+                <Rows3 className="w-3.5 h-3.5" />
+                Week
+              </button>
+            </div>
+
+            {/* Navigation */}
             <button
               type="button"
-              onClick={() => navigateMonth(subMonths(currentDate, 1))}
+              onClick={handlePrev}
               disabled={isPending}
               className="p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
-              aria-label="Previous month"
+              aria-label="Previous"
             >
               <ChevronLeft className="w-5 h-5 text-stone-600" />
             </button>
-            <span className="text-sm font-semibold text-stone-700 min-w-[120px] text-center">
-              {isPending ? "Loading…" : format(currentDate, "MMMM yyyy")}
+            <span className="text-sm font-semibold text-stone-700 min-w-[160px] text-center">
+              {navLabel}
             </span>
             <button
               type="button"
-              onClick={() => navigateMonth(addMonths(currentDate, 1))}
+              onClick={handleNext}
               disabled={isPending}
               className="p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
-              aria-label="Next month"
+              aria-label="Next"
             >
               <ChevronRight className="w-5 h-5 text-stone-600" />
             </button>
             <button
               type="button"
-              onClick={() => navigateMonth(new Date())}
+              onClick={handleToday}
               disabled={isPending}
               className="ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
             >
@@ -163,7 +216,7 @@ export default function CalendarPageClient({
         </header>
 
         <div className="flex-1 overflow-auto p-8">
-          {weeklyPlan && (
+          {viewMode === "month" && weeklyPlan && (
             <WeeklyPlanBanner
               plan={{
                 id: weeklyPlan.id,
@@ -174,12 +227,21 @@ export default function CalendarPageClient({
             />
           )}
 
-          <CalendarGrid
-            year={year}
-            month={month}
-            events={filteredEvents}
-            onDayClick={handleDayClick}
-          />
+          {viewMode === "month" ? (
+            <CalendarGrid
+              year={year}
+              month={month}
+              events={filteredEvents}
+              onDayClick={handleDayClick}
+            />
+          ) : (
+            <WeekView
+              currentDate={currentDate}
+              events={filteredEvents}
+              teamMembers={teamMembers}
+              onDayClick={handleDayClick}
+            />
+          )}
         </div>
       </div>
 
