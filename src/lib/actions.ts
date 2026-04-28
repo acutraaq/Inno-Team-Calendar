@@ -1,36 +1,24 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { SafeEvent } from "@/types";
 
 // --- Helpers ---
-function getISOWeekBounds(dateStr: string) {
-  const date = new Date(dateStr);
-  const day = date.getDay(); // 0 = Sunday
-  const startOfWeek = new Date(date);
-  startOfWeek.setDate(date.getDate() - day);
-  startOfWeek.setHours(0, 0, 0, 0);
-
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  return {
-    start: startOfWeek.toISOString().split("T")[0],
-    end: endOfWeek.toISOString().split("T")[0],
-  };
+function toDateStr(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-export type SafeEvent = {
-  id: string;
-  date: string;
-  type: string;
-  session: string;
-  title: string | null;
-  description: string | null;
-  teamMemberId: string | null;
-  teamMember: { name: string; color: string } | null;
-  createdAt: Date;
-};
+function getISOWeekBounds(dateStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay(); // 0 = Sunday
+  const startOfWeek = new Date(y, m - 1, d - day);
+  const endOfWeek = new Date(y, m - 1, d - day + 6);
+  return {
+    start: toDateStr(startOfWeek),
+    end: toDateStr(endOfWeek),
+  };
+}
 
 function wfhUnitsForSession(session: string) {
   return session === "AM" || session === "PM" ? 0.5 : 1;
@@ -47,9 +35,21 @@ async function getWeeklyWfhUnits(teamMemberId: string, date: string, excludeId?:
     },
     select: { session: true },
   });
-
-  return events.reduce((sum, event) => sum + wfhUnitsForSession(event.session), 0);
+  return events.reduce((sum, e) => sum + wfhUnitsForSession(e.session), 0);
 }
+
+const EVENT_SELECT = {
+  id: true,
+  date: true,
+  endDate: true,
+  type: true,
+  session: true,
+  title: true,
+  description: true,
+  teamMemberId: true,
+  teamMember: { select: { name: true, color: true } },
+  createdAt: true,
+} as const;
 
 // --- Team Members ---
 export async function getTeamMembers() {
@@ -62,7 +62,6 @@ export async function getTeamMembers() {
 export async function createTeamMember(name: string, color: string) {
   const existing = await prisma.teamMember.findUnique({ where: { name } });
   if (existing) throw new Error("Team member already exists");
-
   return prisma.teamMember.create({
     data: { name, color },
     select: { id: true, name: true, color: true },
@@ -88,90 +87,52 @@ export async function deleteTeamMember(id: string) {
 export async function getEvents() {
   return prisma.event.findMany({
     orderBy: { date: "asc" },
-    select: {
-      id: true,
-      date: true,
-      type: true,
-      session: true,
-      title: true,
-      description: true,
-      teamMemberId: true,
-      teamMember: { select: { name: true, color: true } },
-      createdAt: true,
-    },
-  });
+    select: EVENT_SELECT,
+  }) as Promise<SafeEvent[]>;
 }
 
 export async function getEventsForMonth(year: number, month: number) {
-  const startDate = new Date(year, month, 1).toISOString().split("T")[0];
-  const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
+  // Pad 7 days before/after to cover leading+trailing calendar cells and
+  // weekly-plan events whose date falls in the preceding week
+  const paddedStart = toDateStr(new Date(year, month, -5)); // ~7 days before month start
+  const paddedEnd = toDateStr(new Date(year, month + 1, 7)); // ~7 days after month end
+
   return prisma.event.findMany({
     where: {
-      date: { gte: startDate, lte: endDate },
+      OR: [
+        // Events starting within the padded window
+        { date: { gte: paddedStart, lte: paddedEnd } },
+        // Multi-day events that start before the window but extend into it
+        { date: { lt: paddedStart }, endDate: { gte: paddedStart } },
+      ],
     },
     orderBy: { date: "asc" },
-    select: {
-      id: true,
-      date: true,
-      type: true,
-      session: true,
-      title: true,
-      description: true,
-      teamMemberId: true,
-      teamMember: { select: { name: true, color: true } },
-      createdAt: true,
-    },
-  });
+    select: EVENT_SELECT,
+  }) as Promise<SafeEvent[]>;
 }
 
 export async function getEventsForDay(date: string) {
   return prisma.event.findMany({
-    where: { date },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      date: true,
-      type: true,
-      session: true,
-      title: true,
-      description: true,
-      teamMemberId: true,
-      teamMember: { select: { name: true, color: true } },
-      createdAt: true,
-    },
-  });
-}
-
-export async function getWeeklyPlanForCurrentWeek() {
-  const today = new Date();
-  const day = today.getDay();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - day);
-  const weekStartStr = startOfWeek.toISOString().split("T")[0];
-
-  return prisma.event.findFirst({
     where: {
-      date: weekStartStr,
-      type: "WEEKLY_PLAN",
+      OR: [
+        { date },
+        { date: { lte: date }, endDate: { gte: date } },
+      ],
     },
-    select: {
-      id: true,
-      date: true,
-      title: true,
-      description: true,
-    },
-  });
+    orderBy: { createdAt: "asc" },
+    select: EVENT_SELECT,
+  }) as Promise<SafeEvent[]>;
 }
 
 export async function createEvent(data: {
   date: string;
+  endDate?: string;
   type: string;
   session?: string;
   title?: string;
   description?: string;
   teamMemberId?: string;
 }) {
-  // Validate WFH limit
   if (data.type === "WFH" && data.teamMemberId) {
     const currentUnits = await getWeeklyWfhUnits(data.teamMemberId, data.date);
     const incomingUnits = wfhUnitsForSession(data.session || "FULL_DAY");
@@ -185,23 +146,14 @@ export async function createEvent(data: {
   return prisma.event.create({
     data: {
       date: data.date,
+      endDate: data.endDate || null,
       type: data.type,
       session: data.session || "FULL_DAY",
       title: data.title || null,
       description: data.description || null,
       teamMemberId: data.teamMemberId || null,
     },
-    select: {
-      id: true,
-      date: true,
-      type: true,
-      session: true,
-      title: true,
-      description: true,
-      teamMemberId: true,
-      teamMember: { select: { name: true, color: true } },
-      createdAt: true,
-    },
+    select: EVENT_SELECT,
   }) as Promise<SafeEvent>;
 }
 
@@ -209,6 +161,7 @@ export async function updateEvent(
   id: string,
   data: {
     date?: string;
+    endDate?: string | null;
     type?: string;
     session?: string;
     title?: string;
@@ -216,10 +169,22 @@ export async function updateEvent(
     teamMemberId?: string | null;
   }
 ) {
-  // Validate WFH limit if changing to WFH or changing date
-  if (data.type === "WFH" && data.teamMemberId && data.date) {
-    const currentUnits = await getWeeklyWfhUnits(data.teamMemberId, data.date, id);
-    const incomingUnits = wfhUnitsForSession(data.session || "FULL_DAY");
+  // Fetch the existing record so we can validate using the full effective values,
+  // even when only a subset of fields is being updated (e.g. session-only change)
+  const existing = await prisma.event.findUniqueOrThrow({
+    where: { id },
+    select: { type: true, date: true, session: true, teamMemberId: true },
+  });
+
+  const effectiveType = data.type ?? existing.type;
+  const effectiveDate = data.date ?? existing.date;
+  const effectiveSession = data.session ?? existing.session;
+  const effectiveMemberId =
+    data.teamMemberId !== undefined ? data.teamMemberId : existing.teamMemberId;
+
+  if (effectiveType === "WFH" && effectiveMemberId) {
+    const currentUnits = await getWeeklyWfhUnits(effectiveMemberId, effectiveDate, id);
+    const incomingUnits = wfhUnitsForSession(effectiveSession);
     if (currentUnits + incomingUnits > 2) {
       throw new Error(
         "WFH limit reached (2/2 this week). Delete or edit an existing entry first."
@@ -230,26 +195,15 @@ export async function updateEvent(
   return prisma.event.update({
     where: { id },
     data: {
-      ...(data.date && { date: data.date }),
-      ...(data.type && { type: data.type }),
-      ...(data.session && { session: data.session }),
-      title: data.title,
-      description: data.description,
-      ...(data.teamMemberId !== undefined && {
-        teamMemberId: data.teamMemberId || null,
-      }),
+      ...(data.date !== undefined && { date: data.date }),
+      ...(data.endDate !== undefined && { endDate: data.endDate }),
+      ...(data.type !== undefined && { type: data.type }),
+      ...(data.session !== undefined && { session: data.session }),
+      ...(data.title !== undefined && { title: data.title || null }),
+      ...(data.description !== undefined && { description: data.description || null }),
+      ...(data.teamMemberId !== undefined && { teamMemberId: data.teamMemberId || null }),
     },
-    select: {
-      id: true,
-      date: true,
-      type: true,
-      session: true,
-      title: true,
-      description: true,
-      teamMemberId: true,
-      teamMember: { select: { name: true, color: true } },
-      createdAt: true,
-    },
+    select: EVENT_SELECT,
   }) as Promise<SafeEvent>;
 }
 

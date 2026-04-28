@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import { useMemo, useCallback } from "react";
 import { SafeEvent } from "@/types";
 import { DayCell } from "./DayCell";
+import { format } from "date-fns";
 
 interface CalendarGridProps {
   year: number;
@@ -37,10 +38,34 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
     (_, i) => i + 1
   );
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  // Use local date to avoid UTC-offset shifting the "today" date for UTC+ users
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
-  const getEventsForDay = (dateStr: string) =>
-    events.filter((e) => e.date === dateStr);
+  // Pre-group events by date in O(n) instead of filtering per cell in O(n*42)
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, SafeEvent[]>();
+    for (const e of events) {
+      const start = e.date;
+      const end = e.endDate || e.date;
+      // Expand multi-day events into each date key they cover
+      let cur = start;
+      while (cur <= end) {
+        const list = map.get(cur) ?? [];
+        list.push(e);
+        map.set(cur, list);
+        // Advance by one day using local date math
+        const [y, m, d] = cur.split("-").map(Number);
+        const next = new Date(y, m - 1, d + 1);
+        cur = format(next, "yyyy-MM-dd");
+      }
+    }
+    return map;
+  }, [events]);
+
+  const handleDayClick = useCallback(
+    (dateStr: string) => onDayClick(dateStr),
+    [onDayClick]
+  );
 
   const renderCell = (day: number, isCurrentMonth: boolean, monthOffset: number) => {
     const actualMonth = month + monthOffset;
@@ -49,9 +74,11 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
 
     const dateStr = `${actualYear}-${String(actualMonthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const isToday = dateStr === todayStr;
-    const dayOfWeek = new Date(dateStr).getDay();
+    // Parse locally to avoid UTC-offset weekday mismatch for UTC+ timezones
+    const [dy, dm, dd] = dateStr.split("-").map(Number);
+    const dayOfWeek = new Date(dy, dm - 1, dd).getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const dayEvents = getEventsForDay(dateStr);
+    const dayEvents = eventsByDate.get(dateStr) ?? [];
     const isPublicHoliday = dayEvents.some((e) => e.type === "PUBLIC_HOLIDAY");
 
     return (
@@ -64,7 +91,7 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
         isWeekend={isWeekend}
         isPublicHoliday={isPublicHoliday}
         events={dayEvents}
-        onClick={() => onDayClick(dateStr)}
+        onClick={handleDayClick}
       />
     );
   };
@@ -76,7 +103,7 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
         {WEEKDAYS.map((d) => (
           <div
             key={d}
-            className="text-center text-xs font-medium text-stone-400 py-1 uppercase tracking-wider"
+            className="text-center text-xs font-semibold text-stone-500 py-1 uppercase tracking-wider"
           >
             {d}
           </div>

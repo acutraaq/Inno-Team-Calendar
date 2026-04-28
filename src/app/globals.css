@@ -11,25 +11,15 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-izzat: #AEC6CF;
-  --color-shikin: #FFB7B2;
-  --color-ghash: #B5EAD7;
-  --color-haneeda: #C3B1E1;
-  --color-farhana: #FFDAC1;
-  --color-thanesh: #FFFFB5;
-  --color-hazim: #FF9AA2;
-  --color-fahad: #A2D2FF;
-  --color-hakim: #C1E1C1;
+  --color-izzat: #7EB5C4;
+  --color-shikin: #FF8A80;
+  --color-ghash: #80CBC4;
+  --color-haneeda: #B39DDB;
+  --color-farhana: #FFAB91;
+  --color-thanesh: #FFF176;
+  --color-hazim: #FF7043;
+  --color-fahad: #64B5F6;
+  --color-hakim: #AED581;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-}

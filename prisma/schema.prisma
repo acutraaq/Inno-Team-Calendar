@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
 }
 
 model TeamMember {
@@ -17,11 +17,17 @@ model TeamMember {
 model Event {
   id           String   @id @default(cuid())
   date         String   // YYYY-MM-DD
-  type         String   // HOLIDAY, MEDICAL_LEAVE, WFH, PUBLIC_HOLIDAY, WEEKLY_PLAN
+  endDate      String?  // YYYY-MM-DD
+  type         String   // HOLIDAY, MEDICAL_LEAVE, WFH, PUBLIC_HOLIDAY, WEEKLY_PLAN, MEETING
   session      String   @default("FULL_DAY") // FULL_DAY, AM, PM
   title        String?
   description  String?
   teamMemberId String?
   teamMember   TeamMember? @relation(fields: [teamMemberId], references: [id])
   createdAt    DateTime  @default(now())
+
+  @@index([date])
+  @@index([type])
+  @@index([teamMemberId])
+  @@index([teamMemberId, type, date])
 }

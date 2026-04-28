@@ -1,9 +1,10 @@
-export type EventType = "HOLIDAY" | "MEDICAL_LEAVE" | "WFH" | "PUBLIC_HOLIDAY" | "WEEKLY_PLAN";
+export type EventType = "HOLIDAY" | "MEDICAL_LEAVE" | "WFH" | "PUBLIC_HOLIDAY" | "WEEKLY_PLAN" | "MEETING";
 export type EventSession = "FULL_DAY" | "AM" | "PM";
 
 export type SafeEvent = {
   id: string;
   date: string;
+  endDate: string | null;
   type: string;
   session: string;
   title: string | null;

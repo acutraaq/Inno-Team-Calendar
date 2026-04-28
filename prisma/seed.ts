@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import Holidays from 'date-holidays'
 
 const prisma = new PrismaClient()
 
@@ -47,26 +48,48 @@ async function main() {
   // Seed some example events
   const teamMembers = await prisma.teamMember.findMany()
   
-  // Add a public holiday (example - adjust date)
-  await prisma.event.upsert({
-    where: { id: 'seed-public-holiday-1' },
-    update: {},
-    create: {
-      id: 'seed-public-holiday-1',
-      date: new Date(today.getFullYear(), 4, 1).toISOString().split('T')[0], // May 1 Labor Day
+  // Automatically seed Malaysia (Selangor) public holidays for the current year
+  const hd = new Holidays('MY', '10')
+  const currentYear = today.getFullYear()
+  const myHolidays = hd.getHolidays(currentYear)
+
+  // Clear existing public holidays for the current year to prevent stale entries
+  await prisma.event.deleteMany({
+    where: {
       type: 'PUBLIC_HOLIDAY',
-      title: 'Labour Day',
-    },
+      date: {
+        startsWith: String(currentYear)
+      }
+    }
   })
 
-  // Add some WFH days
+  for (const holiday of myHolidays) {
+    if (holiday.type === 'public') {
+      const holidayDate = holiday.date.split(' ')[0] // e.g. "2026-05-01"
+      await prisma.event.upsert({
+        where: { id: `holiday-${holidayDate}-${holiday.name.replace(/\s+/g, '-')}` },
+        update: {},
+        create: {
+          id: `holiday-${holidayDate}-${holiday.name.replace(/\s+/g, '-')}`,
+          date: holidayDate,
+          type: 'PUBLIC_HOLIDAY',
+          title: holiday.name,
+        },
+      })
+    }
+  }
+
+  // Add some example WFH days — stable IDs make this idempotent on re-runs
   const wfhMembers = teamMembers.slice(0, 3)
   for (let i = 0; i < wfhMembers.length; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    await prisma.event.create({
-      data: {
-        date: date.toISOString().split('T')[0],
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i)
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    await prisma.event.upsert({
+      where: { id: `seed-wfh-${i}` },
+      update: {},
+      create: {
+        id: `seed-wfh-${i}`,
+        date: dateStr,
         type: 'WFH',
         session: i === 0 ? 'AM' : 'FULL_DAY',
         title: 'Work From Home',

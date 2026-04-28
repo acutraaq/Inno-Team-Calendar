@@ -16,9 +16,10 @@ export function WeeklyPlanBanner({ plan }: WeeklyPlanBannerProps) {
   if (!plan) return null;
 
   return (
-    <div className="w-full bg-[#FFDAC1]/30 border border-[#FFDAC1]/40 rounded-xl px-5 py-4 mb-6 flex items-start gap-4">
-      <div className="p-2 bg-white/60 rounded-lg">
-        <CalendarDays className="w-5 h-5 text-[#d97706]" />
+    <div className="w-full bg-gradient-to-r from-[#FFAB91]/30 to-[#FFDAC1]/40 border border-[#FFAB91]/30 rounded-2xl px-6 py-5 mb-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#FFAB91] to-[#FFDAC1]" />
+      <div className="p-2.5 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm">
+        <CalendarDays className="w-5 h-5 text-[#b45309] group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="flex-1">
         <p className="text-xs font-semibold text-[#b45309] uppercase tracking-wider mb-1">
@@ -28,7 +29,7 @@ export function WeeklyPlanBanner({ plan }: WeeklyPlanBannerProps) {
           {plan.title || "No plan title"}
         </h3>
         {plan.description && (
-          <p className="text-sm text-stone-500 mt-1">{plan.description}</p>
+          <p className="text-sm text-stone-700 font-medium mt-1">{plan.description}</p>
         )}
       </div>
     </div>

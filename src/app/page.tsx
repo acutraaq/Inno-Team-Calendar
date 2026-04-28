@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import CalendarPageClient from "@/components/CalendarPageClient";
-import { getEvents } from "@/lib/actions";
-import { prisma } from "@/lib/prisma";
+import { getEventsForMonth, getTeamMembers } from "@/lib/actions";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  const now = new Date();
   const [events, teamMembers] = await Promise.all([
-    getEvents(),
-    prisma.teamMember.findMany({ orderBy: { name: "asc" } }),
+    getEventsForMonth(now.getFullYear(), now.getMonth()),
+    getTeamMembers(),
   ]);
 
   return (

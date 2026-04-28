@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getMemberColorClass } from "@/lib/utils";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
 
 function getErrorMessage(error: unknown) {
@@ -26,6 +26,7 @@ const TYPE_OPTIONS: { value: EventType; label: string }[] = [
   { value: "WFH", label: "Work From Home" },
   { value: "PUBLIC_HOLIDAY", label: "Public Holiday" },
   { value: "WEEKLY_PLAN", label: "Weekly Plan" },
+  { value: "MEETING", label: "Meeting / Event" },
 ];
 
 const TYPE_COLORS: Record<EventType, string> = {
@@ -34,6 +35,7 @@ const TYPE_COLORS: Record<EventType, string> = {
   WFH: "bg-[#B5EAD7]",
   PUBLIC_HOLIDAY: "bg-stone-300",
   WEEKLY_PLAN: "bg-[#FFDAC1]",
+  MEETING: "bg-[#FFAB91]",
 };
 
 const TYPE_TEXT: Record<EventType, string> = {
@@ -42,6 +44,7 @@ const TYPE_TEXT: Record<EventType, string> = {
   WFH: "Work From Home",
   PUBLIC_HOLIDAY: "Public Holiday",
   WEEKLY_PLAN: "Weekly Plan",
+  MEETING: "Meeting / Event",
 };
 
 const SESSION_OPTIONS: { value: EventSession; label: string }[] = [
@@ -65,14 +68,17 @@ export function DayDetailSheet({
   const [formTitle, setFormTitle] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [formMemberId, setFormMemberId] = useState("");
+  const [formEndDate, setFormEndDate] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const resetForm = () => {
     setFormType("WFH");
     setFormTitle("");
     setFormDesc("");
     setFormMemberId("");
+    setFormEndDate("");
     setFormSession("FULL_DAY");
     setError("");
     setEditingId(null);
@@ -89,20 +95,21 @@ export function DayDetailSheet({
     setFormTitle(event.title || "");
     setFormDesc(event.description || "");
     setFormMemberId(event.teamMemberId || "");
+    setFormEndDate(event.endDate || "");
     setFormSession((event.session as EventSession) || "FULL_DAY");
     setError("");
     setShowForm(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       if (editingId) {
         await updateEvent(editingId, {
           date,
+          endDate: formEndDate || null,
           type: formType,
           session: formSession,
           title: formTitle,
@@ -112,6 +119,7 @@ export function DayDetailSheet({
       } else {
         await createEvent({
           date,
+          endDate: formEndDate || undefined,
           type: formType,
           session: formSession,
           title: formTitle,
@@ -129,8 +137,10 @@ export function DayDetailSheet({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmId) return;
+    const id = deleteConfirmId;
+    setDeleteConfirmId(null);
     setLoading(true);
     try {
       await deleteEvent(id);
@@ -144,7 +154,9 @@ export function DayDetailSheet({
 
   if (!isOpen) return null;
 
-  const dateObj = new Date(date);
+  // Parse date components locally to avoid UTC-offset date shifting for UTC+ timezones
+  const [dateYear, dateMo, dateDay] = date.split("-").map(Number);
+  const dateObj = new Date(dateYear, dateMo - 1, dateDay);
   const dateLabel = dateObj.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -161,15 +173,17 @@ export function DayDetailSheet({
       />
 
       {/* Sheet */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200/50">
           <div>
             <h2 className="text-lg font-semibold text-stone-800">Events</h2>
             <p className="text-sm text-stone-400 mt-0.5">{dateLabel}</p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
+            aria-label="Close details"
           >
             <X className="w-5 h-5 text-stone-500" />
           </button>
@@ -180,6 +194,7 @@ export function DayDetailSheet({
             <div className="text-center py-16">
               <p className="text-stone-400 text-sm mb-4">No events for this day.</p>
               <button
+                type="button"
                 onClick={handleAddClick}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-stone-800 text-white text-sm rounded-lg hover:bg-stone-700 transition-colors"
               >
@@ -208,8 +223,7 @@ export function DayDetailSheet({
                     {ev.teamMember && (
                       <span className="text-xs text-stone-500 flex items-center gap-1">
                         <span
-                          className="w-2 h-2 rounded-full inline-block"
-                          style={{ backgroundColor: ev.teamMember.color }}
+                          className={cn("w-2 h-2 rounded-full inline-block", getMemberColorClass(ev.teamMember.color))}
                         />
                         {ev.teamMember.name}
                       </span>
@@ -220,16 +234,21 @@ export function DayDetailSheet({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Always visible on focus for keyboard users, hover-visible otherwise */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                     <button
+                      type="button"
                       onClick={() => handleEditClick(ev)}
                       className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+                      aria-label="Edit event"
                     >
                       <Pencil className="w-3.5 h-3.5 text-stone-400" />
                     </button>
                     <button
-                      onClick={() => handleDelete(ev.id)}
+                      type="button"
+                      onClick={() => setDeleteConfirmId(ev.id)}
                       className="p-1.5 hover:bg-red-50 rounded-md transition-colors"
+                      aria-label="Delete event"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-stone-400 hover:text-red-500" />
                     </button>
@@ -247,6 +266,7 @@ export function DayDetailSheet({
 
           {!showForm && events.length > 0 && (
             <button
+              type="button"
               onClick={handleAddClick}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-stone-200 rounded-lg text-sm text-stone-500 hover:border-stone-300 hover:bg-stone-50 transition-colors"
             >
@@ -265,10 +285,11 @@ export function DayDetailSheet({
 
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                  <label htmlFor="formType" className="text-xs font-medium text-stone-500 mb-1.5 block">
                     Event Type
                   </label>
                   <select
+                    id="formType"
                     value={formType}
                     onChange={(e) => setFormType(e.target.value as EventType)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
@@ -282,10 +303,25 @@ export function DayDetailSheet({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                  <label htmlFor="formEndDate" className="text-xs font-medium text-stone-500 mb-1.5 block">
+                    End Date (Optional)
+                  </label>
+                  <input
+                    id="formEndDate"
+                    type="date"
+                    value={formEndDate}
+                    onChange={(e) => setFormEndDate(e.target.value)}
+                    min={date}
+                    className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="formMemberId" className="text-xs font-medium text-stone-500 mb-1.5 block">
                     Team Member {formType === "WFH" && "(required)"}
                   </label>
                   <select
+                    id="formMemberId"
                     value={formMemberId}
                     onChange={(e) => setFormMemberId(e.target.value)}
                     required={formType === "WFH"}
@@ -301,10 +337,11 @@ export function DayDetailSheet({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                  <label htmlFor="formSession" className="text-xs font-medium text-stone-500 mb-1.5 block">
                     Duration
                   </label>
                   <select
+                    id="formSession"
                     value={formSession}
                     onChange={(e) => setFormSession(e.target.value as EventSession)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-200"
@@ -318,10 +355,11 @@ export function DayDetailSheet({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                  <label htmlFor="formTitle" className="text-xs font-medium text-stone-500 mb-1.5 block">
                     Title
                   </label>
                   <input
+                    id="formTitle"
                     type="text"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
@@ -331,10 +369,11 @@ export function DayDetailSheet({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-500 mb-1.5 block">
+                  <label htmlFor="formDesc" className="text-xs font-medium text-stone-500 mb-1.5 block">
                     Description
                   </label>
                   <textarea
+                    id="formDesc"
                     value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
                     rows={3}
@@ -353,10 +392,7 @@ export function DayDetailSheet({
               <div className="flex items-center justify-end gap-2 mt-5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
+                  onClick={() => { setShowForm(false); resetForm(); }}
                   disabled={loading}
                   className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-50"
                 >
@@ -374,6 +410,43 @@ export function DayDetailSheet({
           )}
         </div>
       </div>
+
+      {/* Inline delete confirmation dialog */}
+      {deleteConfirmId && (
+        <>
+          <div className="fixed inset-0 bg-stone-900/40 z-[60]" onClick={() => setDeleteConfirmId(null)} />
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-title"
+            aria-describedby="confirm-desc"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[340px] bg-white rounded-xl shadow-2xl p-6 border border-stone-200"
+          >
+            <h3 id="confirm-title" className="text-sm font-semibold text-stone-800 mb-1">
+              Delete event?
+            </h3>
+            <p id="confirm-desc" className="text-xs text-stone-500 mb-5">
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

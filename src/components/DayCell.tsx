@@ -1,4 +1,5 @@
 import React from "react";
+import { cn, getMemberColorClass } from "@/lib/utils";
 
 interface DayCellProps {
   day: number;
@@ -14,11 +15,12 @@ interface DayCellProps {
     teamMember: { name: string; color: string } | null;
     title: string | null;
   }[];
-  onClick: () => void;
+  onClick: (dateStr: string) => void;
 }
 
-export function DayCell({
+function DayCellInner({
   day,
+  dateStr,
   isCurrentMonth,
   isToday,
   isWeekend,
@@ -26,28 +28,30 @@ export function DayCell({
   events,
   onClick,
 }: DayCellProps) {
-  // Sort events: WFH, Medical, Holiday, Weekly Plan, Public Holiday
   const visibleEvents = events.slice(0, 4);
 
   return (
     <div
-      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onClick={() => onClick(dateStr)}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick(dateStr)}
       className={`
         relative min-h-[80px] p-2 border border-stone-100 rounded-md
         cursor-pointer transition-all duration-150 ease-out
         flex flex-col gap-1
-        ${!isCurrentMonth ? "bg-stone-50/50 text-stone-300" : "bg-white text-stone-700"}
+        ${!isCurrentMonth ? "bg-stone-50/50 text-stone-500" : "bg-white text-stone-800"}
         ${isWeekend && isCurrentMonth ? "bg-stone-50/70" : ""}
-        ${isPublicHoliday ? "bg-stone-200/40 opacity-80" : ""}
-        ${isToday ? "ring-2 ring-stone-300 z-10" : ""}
-        hover:shadow-sm hover:bg-stone-50/90
+        ${isPublicHoliday ? "bg-stone-200/50" : ""}
+        ${isToday ? "ring-2 ring-stone-400 bg-stone-50 z-10 shadow-sm" : ""}
+        hover:scale-[1.02] hover:shadow-md hover:bg-white
       `}
     >
       <span
         className={`
           text-xs font-bold
           ${isToday ? "text-stone-900" : ""}
-          ${!isCurrentMonth ? "text-stone-300" : "text-stone-500"}
+          ${!isCurrentMonth ? "text-stone-500" : "text-stone-600"}
         `}
       >
         {day}
@@ -56,25 +60,30 @@ export function DayCell({
         {visibleEvents.map((event) => (
           <div
             key={event.id}
-            className="flex items-center gap-1.5 text-[10px] truncate"
+            className="flex items-center gap-1.5 text-xs truncate"
             title={event.title || event.type}
           >
-            {(event.teamMember || event.type === "PUBLIC_HOLIDAY") && (
+            {(event.teamMember || event.type === "PUBLIC_HOLIDAY" || event.type === "WEEKLY_PLAN" || event.type === "MEETING") && (
               <span
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{
-                  backgroundColor:
-                    event.type === "PUBLIC_HOLIDAY"
-                      ? "#a8a29e"
-                      : event.teamMember?.color || "#d6d3d1",
-                }}
+                className={cn(
+                  "w-2 h-2 rounded-full flex-shrink-0",
+                  event.type === "PUBLIC_HOLIDAY"
+                    ? "bg-[#a8a29e]"
+                    : event.type === "WEEKLY_PLAN"
+                    ? "bg-[#FFDAC1]"
+                    : event.type === "MEETING"
+                    ? "bg-[#FFAB91]"
+                    : getMemberColorClass(event.teamMember?.color)
+                )}
               />
             )}
-            <span className="truncate text-stone-600">
+            <span className="truncate text-stone-700 font-medium">
               {event.type === "WEEKLY_PLAN"
-                ? "Weekly Plan"
+                ? event.title || "Weekly Plan"
                 : event.type === "PUBLIC_HOLIDAY"
                 ? event.title || "Holiday"
+                : event.type === "MEETING"
+                ? event.title || "Meeting"
                 : `${event.teamMember?.name || "Event"}${
                     event.session !== "FULL_DAY" ? ` (${event.session})` : ""
                   }`}
@@ -82,7 +91,7 @@ export function DayCell({
           </div>
         ))}
         {events.length > 4 && (
-          <span className="text-[9px] text-stone-400 pl-1">
+          <span className="text-[11px] font-medium text-stone-500 pl-1">
             +{events.length - 4} more
           </span>
         )}
@@ -90,3 +99,5 @@ export function DayCell({
     </div>
   );
 }
+
+export const DayCell = React.memo(DayCellInner);
