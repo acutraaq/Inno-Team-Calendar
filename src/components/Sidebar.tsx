@@ -3,7 +3,8 @@
 import React from "react";
 import { SafeTeamMember } from "@/types";
 import { Users } from "lucide-react";
-import { cn, getEventTypeBgClass } from "@/lib/utils";
+
+import { EventTypeDot } from "./EventTypeIcon";
 
 interface SidebarProps {
   teamMembers: SafeTeamMember[];
@@ -46,7 +47,7 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
             <label
               key={member.id}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md cursor-pointer
-                         hover:bg-stone-50/60 hover:translate-x-1 transition-all group"
+                         hover:bg-stone-50/60 transition-colors group"
             >
               <input
                 type="checkbox"
@@ -70,7 +71,7 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
             <label
               key={type}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md cursor-pointer
-                         hover:bg-stone-50/60 hover:translate-x-1 transition-all"
+                         hover:bg-stone-50/60 transition-colors"
             >
               <input
                 type="checkbox"
@@ -78,7 +79,7 @@ export function Sidebar({ teamMembers, selectedMembers, onToggleMember, eventTyp
                 onChange={() => onToggleType(type)}
                 className="w-3.5 h-3.5 accent-stone-400 rounded cursor-pointer"
               />
-              <span className={cn("w-3 h-3 rounded-full flex-shrink-0", getEventTypeBgClass(type))} />
+              <EventTypeDot type={type} />
               <span className="text-sm text-stone-700">{label}</span>
             </label>
           ))}

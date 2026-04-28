@@ -79,7 +79,7 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
     const dayOfWeek = new Date(dy, dm - 1, dd).getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const dayEvents = eventsByDate.get(dateStr) ?? [];
-    const isPublicHoliday = dayEvents.some((e) => e.type === "PUBLIC_HOLIDAY");
+    const publicHoliday = dayEvents.find((e) => e.type === "PUBLIC_HOLIDAY") ?? null;
 
     return (
       <DayCell
@@ -89,7 +89,7 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
         isCurrentMonth={isCurrentMonth}
         isToday={isToday}
         isWeekend={isWeekend}
-        isPublicHoliday={isPublicHoliday}
+        publicHoliday={publicHoliday}
         events={dayEvents}
         onClick={handleDayClick}
       />

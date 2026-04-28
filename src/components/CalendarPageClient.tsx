@@ -9,7 +9,7 @@ import { WeeklyPlanBanner } from "@/components/WeeklyPlanBanner";
 import { WeekView } from "@/components/WeekView";
 import { DayDetailSheet } from "@/components/DayDetailSheet";
 import { getEventsForMonth } from "@/lib/actions";
-import { ChevronLeft, ChevronRight, Calendar, LayoutGrid, Rows3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, LayoutGrid, Rows3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CalendarPageClientProps {
@@ -140,13 +140,13 @@ export default function CalendarPageClient({
         {/* Header */}
         <header className="flex items-center justify-between px-8 py-5 bg-white/60 backdrop-blur-md border-b border-stone-200/50 z-10 sticky top-0">
           <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-stone-100 rounded-xl">
-              <Calendar className="w-5 h-5 text-stone-600" />
+            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl ring-1 ring-orange-200/60 shadow-sm">
+              <Sparkles className="w-5 h-5 text-amber-600" strokeWidth={2.2} />
             </div>
             <div>
               <h1 className="text-xl font-bold text-stone-800">Inno Team Planner</h1>
               <p className="text-sm text-stone-500 font-medium">
-                Track holidays, WFH, and team plans
+                The innovation team&apos;s weekly pulse
               </p>
             </div>
           </div>
@@ -216,32 +216,40 @@ export default function CalendarPageClient({
         </header>
 
         <div className="flex-1 overflow-auto p-8">
-          {viewMode === "month" && weeklyPlan && (
-            <WeeklyPlanBanner
-              plan={{
-                id: weeklyPlan.id,
-                date: weeklyPlan.date,
-                title: weeklyPlan.title,
-                description: weeklyPlan.description,
-              }}
-            />
-          )}
+          <div className="max-w-[1400px] mx-auto">
+            {viewMode === "month" && weeklyPlan && (
+              <WeeklyPlanBanner
+                plan={{
+                  id: weeklyPlan.id,
+                  date: weeklyPlan.date,
+                  title: weeklyPlan.title,
+                  description: weeklyPlan.description,
+                }}
+              />
+            )}
 
-          {viewMode === "month" ? (
-            <CalendarGrid
-              year={year}
-              month={month}
-              events={filteredEvents}
-              onDayClick={handleDayClick}
-            />
-          ) : (
-            <WeekView
-              currentDate={currentDate}
-              events={filteredEvents}
-              teamMembers={teamMembers}
-              onDayClick={handleDayClick}
-            />
-          )}
+            {events.length > 0 && filteredEvents.length === 0 && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                Nothing to show — adjust the team member or event type filters in the sidebar.
+              </div>
+            )}
+
+            {viewMode === "month" ? (
+              <CalendarGrid
+                year={year}
+                month={month}
+                events={filteredEvents}
+                onDayClick={handleDayClick}
+              />
+            ) : (
+              <WeekView
+                currentDate={currentDate}
+                events={filteredEvents}
+                teamMembers={teamMembers}
+                onDayClick={handleDayClick}
+              />
+            )}
+          </div>
         </div>
       </div>
 

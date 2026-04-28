@@ -4,7 +4,8 @@ import { useState } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
 import { X, Plus, Trash2, Pencil } from "lucide-react";
-import { cn, getEventBadgeBgClass } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { EVENT_TYPE_ICONS, EVENT_TYPE_ICON_COLORS, EVENT_TYPE_PILL_BG } from "./EventTypeIcon";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/actions";
 
 function getErrorMessage(error: unknown) {
@@ -207,7 +208,7 @@ export function DayDetailSheet({
               <button
                 type="button"
                 onClick={handleAddClick}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-stone-800 text-white text-sm rounded-lg hover:bg-stone-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-stone-700 text-white text-sm rounded-lg hover:bg-stone-800 shadow-sm transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add Event
               </button>
@@ -222,14 +223,21 @@ export function DayDetailSheet({
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={cn(
-                        "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider text-stone-800",
-                        getEventBadgeBgClass(ev.type, ev.session)
-                      )}
-                    >
-                      {TYPE_TEXT[ev.type as EventType] ?? ev.type}
-                    </span>
+                    {(() => {
+                      const Icon = EVENT_TYPE_ICONS[ev.type];
+                      const iconColor = EVENT_TYPE_ICON_COLORS[ev.type] ?? "text-stone-500";
+                      return (
+                        <span
+                          className={cn(
+                            "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1",
+                            EVENT_TYPE_PILL_BG[ev.type] ?? "bg-stone-100 text-stone-700"
+                          )}
+                        >
+                          {Icon && <Icon className={cn("w-3 h-3", iconColor)} strokeWidth={2.5} />}
+                          {TYPE_TEXT[ev.type as EventType] ?? ev.type}
+                        </span>
+                      );
+                    })()}
                     {ev.teamMember && (
                       <span className="text-xs text-stone-500">
                         {ev.teamMember.name}
@@ -409,7 +417,7 @@ export function DayDetailSheet({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-sm bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   {loading ? "Saving..." : editingId ? "Save Changes" : "Create Event"}
                 </button>

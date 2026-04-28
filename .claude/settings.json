@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)",
+      "Bash(cat next.config.mjs)",
+      "Bash(git config *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git commit --allow-empty -m ' *)",
+      "Bash(node -e \"const l = require\\('./node_modules/lucide-react'\\); console.log\\(Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('row'\\) || k.toLowerCase\\(\\).includes\\('table'\\) || k.toLowerCase\\(\\).includes\\('list'\\)\\)\\)\")",
+      "Bash(node -e \"const l = require\\('./node_modules/lucide-react'\\); const keys = Object.keys\\(l\\); console.log\\(keys.filter\\(k => /row|table|list|grid|week/i.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const p = require\\('./node_modules/date-holidays/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(npm show *)",
+      "Bash(npx next *)"
+    ]
+  }
+}

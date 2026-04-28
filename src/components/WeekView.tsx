@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import { addDays, startOfWeek, format, isSameDay } from "date-fns";
 import { SafeEvent, SafeTeamMember } from "@/types";
-import { cn, getEventTypeBgClass, getEventBadgeBgClass } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { EVENT_TYPE_ICONS, EVENT_TYPE_ICON_COLORS, EVENT_TYPE_PILL_BG } from "./EventTypeIcon";
 
 const TYPE_SHORT: Record<string, string> = {
   ANNUAL_LEAVE:  "AL",
@@ -80,14 +81,17 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
             Events &amp; Meetings This Week
           </p>
           <div className="flex flex-col gap-2">
-            {highlights.map((ev) => (
+            {highlights.map((ev) => {
+              const PillIcon = EVENT_TYPE_ICONS[ev.type];
+              return (
               <div key={ev.id} className="flex items-center gap-3 flex-wrap">
                 <span
                   className={cn(
-                    "px-2 py-0.5 rounded-full text-[10px] font-semibold text-stone-800 uppercase tracking-wide",
-                    getEventTypeBgClass(ev.type)
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide",
+                    EVENT_TYPE_PILL_BG[ev.type] ?? "bg-stone-100 text-stone-700"
                   )}
                 >
+                  {PillIcon && <PillIcon className="w-3 h-3" strokeWidth={2.5} />}
                   {TYPE_SHORT[ev.type] ?? ev.type}
                 </span>
                 <span className="text-sm font-semibold text-stone-700">
@@ -99,7 +103,8 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                   <span className="text-sm text-stone-500">{ev.title}</span>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -124,17 +129,17 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                       "px-3 py-3 text-center border-b border-r border-stone-100 font-normal",
                       isWeekend ? "bg-stone-50/80" : "bg-stone-50/30",
                       isToday && "bg-stone-100",
-                      ph && "bg-stone-200/50"
+                      ph && "bg-orange-50 border-b-orange-200"
                     )}
                   >
-                    <p className="text-[10px] font-semibold text-stone-400 uppercase">
+                    <p className={cn("text-[10px] font-semibold uppercase", ph ? "text-orange-500" : "text-stone-400")}>
                       {format(day, "EEE")}
                     </p>
-                    <p className={cn("text-sm font-bold mt-0.5", isToday ? "text-stone-900" : "text-stone-600")}>
+                    <p className={cn("text-sm font-bold mt-0.5", isToday ? "text-stone-900" : ph ? "text-orange-700" : "text-stone-600")}>
                       {format(day, "d")}
                     </p>
                     {ph && (
-                      <p className="text-[9px] text-stone-400 mt-0.5 truncate max-w-[80px] mx-auto" title={ph.title ?? "Public Holiday"}>
+                      <p className="text-[10px] font-semibold text-orange-600 mt-0.5 truncate max-w-[80px] mx-auto" title={ph.title ?? "Public Holiday"}>
                         {ph.title ?? "PH"}
                       </p>
                     )}
@@ -163,25 +168,30 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
                         "px-2 py-2 border-r border-stone-100 min-w-[80px] h-14 cursor-pointer align-top transition-colors",
                         isWeekend ? "bg-stone-50/40" : "",
                         isToday ? "bg-stone-50" : "",
-                        ph ? "bg-stone-200/20" : "",
+                        ph ? "bg-orange-50/40" : "",
                         "hover:bg-stone-50/80"
                       )}
                     >
                       <div className="flex flex-col gap-0.5">
-                        {dayEvents.map((ev) => (
-                          <span
-                            key={ev.id}
-                            className={cn(
-                              "text-[10px] font-semibold px-1.5 py-0.5 rounded text-stone-800 inline-block leading-snug",
-                              getEventBadgeBgClass(ev.type, ev.session)
-                            )}
-                          >
-                            {TYPE_SHORT[ev.type] ?? ev.type}
-                            {ev.session !== "FULL_DAY" && (
-                              <span className="ml-0.5 opacity-80">{ev.session}</span>
-                            )}
-                          </span>
-                        ))}
+                        {dayEvents.map((ev) => {
+                          const Icon = EVENT_TYPE_ICONS[ev.type];
+                          const iconColor = EVENT_TYPE_ICON_COLORS[ev.type] ?? "text-stone-500";
+                          return (
+                            <span
+                              key={ev.id}
+                              className={cn(
+                                "text-[10px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 leading-snug",
+                                EVENT_TYPE_PILL_BG[ev.type] ?? "bg-stone-100 text-stone-700"
+                              )}
+                            >
+                              {Icon && <Icon className={cn("w-2.5 h-2.5 flex-shrink-0", iconColor)} strokeWidth={2.5} />}
+                              {TYPE_SHORT[ev.type] ?? ev.type}
+                              {ev.session !== "FULL_DAY" && (
+                                <span className="opacity-80">{ev.session}</span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     </td>
                   );
