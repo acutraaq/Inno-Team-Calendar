@@ -2,12 +2,15 @@ name: Deploy to Azure Web App
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 env:
   AZURE_WEBAPP_NAME: "inno-planner"
   NODE_VERSION: "22.x"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-deploy:
@@ -25,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Generate Prisma Client
         run: npx prisma generate
 
@@ -34,18 +40,24 @@ jobs:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npm run build
 
-      - name: Prepare standalone package
+      - name: Assemble and zip standalone release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
-          cp -r node_modules/.prisma .next/standalone/node_modules/.prisma
-          mkdir -p .next/standalone/prisma
-          cp prisma/schema.prisma .next/standalone/prisma/schema.prisma
-          printf '[config]\nSCM_DO_BUILD_DURING_DEPLOYMENT = false\n' > .next/standalone/.deployment
+          STANDALONE_DIR=$(dirname "$(find .next/standalone -name "server.js" -maxdepth 3 | head -1)")
+          echo "Standalone root: $STANDALONE_DIR"
+          cp -r public "$STANDALONE_DIR/public"
+          mkdir -p "$STANDALONE_DIR/.next"
+          cp -r .next/static "$STANDALONE_DIR/.next/static"
+          cp -r node_modules/.prisma "$STANDALONE_DIR/node_modules/.prisma"
+          mkdir -p "$STANDALONE_DIR/prisma"
+          cp prisma/schema.prisma "$STANDALONE_DIR/prisma/schema.prisma"
+          printf 'NodeVersion = "22"\nStartupCommand = "env -u HOSTNAME node server.js"\n' > "$STANDALONE_DIR/oryx-manifest.toml"
+          cd "$STANDALONE_DIR" && zip -r "$GITHUB_WORKSPACE/release.zip" .
 
       - name: Deploy to Azure Web App
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: .next/standalone
+          package: release.zip
