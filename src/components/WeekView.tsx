@@ -104,7 +104,7 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
 
       {/* Team schedule grid */}
       <div className="bg-white/70 border border-stone-100 rounded-xl overflow-auto shadow-sm">
-        <table className="w-full border-collapse" style={{ minWidth: 640 }}>
+        <table className="w-full border-collapse min-w-[640px]">
           <thead>
             <tr>
               <th className="px-4 py-3 text-left border-b border-r border-stone-100 bg-stone-50/60 w-36">
