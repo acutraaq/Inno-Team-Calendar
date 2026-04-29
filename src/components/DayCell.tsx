@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Flag } from "lucide-react";
 import { SafeEvent } from "@/types";
 import { EventTypeDot, EVENT_TYPE_PILL_BG } from "./EventTypeIcon";
 import { cn } from "@/lib/utils";
+
+const MAX_VISIBLE = 3;
 
 interface DayCellProps {
   day: number;
@@ -33,10 +35,11 @@ function DayCellInner({
   events,
   onClick,
 }: DayCellProps) {
+  const [expanded, setExpanded] = useState(false);
+
   const nonHolidayEvents = events.filter((e) => e.type !== "PUBLIC_HOLIDAY");
-  const MAX_VISIBLE = 3;
-  const visibleEvents = nonHolidayEvents.slice(0, MAX_VISIBLE);
   const overflowCount = nonHolidayEvents.length - MAX_VISIBLE;
+  const visibleEvents = expanded ? nonHolidayEvents : nonHolidayEvents.slice(0, MAX_VISIBLE);
 
   let cellBg = isCurrentMonth ? "bg-white" : "bg-stone-50/50";
   if (publicHoliday) cellBg = isCurrentMonth ? "bg-orange-50" : "bg-orange-50/40";
@@ -121,10 +124,25 @@ function DayCellInner({
             </div>
           );
         })}
-        {overflowCount > 0 && (
-          <span className="text-[11px] font-medium text-stone-500 pl-1">
+
+        {/* Expand / collapse toggle */}
+        {overflowCount > 0 && !expanded && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+            className="text-[11px] font-medium text-stone-400 hover:text-stone-600 text-left pl-1 transition-colors"
+          >
             +{overflowCount} more
-          </span>
+          </button>
+        )}
+        {expanded && nonHolidayEvents.length > MAX_VISIBLE && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+            className="text-[11px] font-medium text-stone-400 hover:text-stone-600 text-left pl-1 transition-colors"
+          >
+            show less
+          </button>
         )}
       </div>
 
