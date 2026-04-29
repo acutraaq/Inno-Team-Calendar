@@ -3,6 +3,7 @@
 import React from "react";
 import { SafeTeamMember } from "@/types";
 import { Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { EventTypeDot, EVENT_TYPE_LABEL } from "./EventTypeIcon";
 
@@ -74,23 +75,33 @@ export function Sidebar({
         </div>
 
         <div className="flex flex-col gap-1 mb-6">
-          {teamMembers.map((member) => (
-            <label
-              key={member.id}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-md cursor-pointer
-                         hover:bg-stone-50/60 transition-colors group"
-            >
-              <input
-                type="checkbox"
-                checked={selectedMembers.includes(member.id)}
-                onChange={() => onToggleMember(member.id)}
-                className="w-3.5 h-3.5 accent-stone-400 rounded cursor-pointer"
-              />
-              <span className="text-sm text-stone-700 group-hover:text-stone-900">
-                {member.name}
-              </span>
-            </label>
-          ))}
+          {teamMembers.map((member) => {
+            const isSelected = selectedMembers.includes(member.id);
+            return (
+              <button
+                key={member.id}
+                type="button"
+                onClick={() => onToggleMember(member.id)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-md cursor-pointer w-full text-left transition-colors hover:bg-stone-50/60"
+              >
+                {/* Color dot swatch — solid when selected, outline ring when not */}
+                <span
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-150"
+                  style={
+                    isSelected
+                      ? { backgroundColor: member.color }
+                      : { border: `2px solid ${member.color}`, backgroundColor: "transparent" }
+                  }
+                />
+                <span className={cn(
+                  "text-sm transition-colors",
+                  isSelected ? "text-stone-800 font-medium" : "text-stone-400"
+                )}>
+                  {member.name}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3 flex items-center justify-between">

@@ -121,6 +121,22 @@ export default function CalendarPageClient({
       })
     : [];
 
+  // Whether the current view is showing today's period (hides the Today button when true)
+  const isCurrentPeriod = useMemo(() => {
+    const today = new Date();
+    if (viewMode === "month") {
+      return (
+        currentDate.getMonth() === today.getMonth() &&
+        currentDate.getFullYear() === today.getFullYear()
+      );
+    }
+    // Week view: check today falls within the displayed week
+    const ws = format(startOfWeek(currentDate, { weekStartsOn: 1 }), "yyyy-MM-dd");
+    const we = format(addDays(startOfWeek(currentDate, { weekStartsOn: 1 }), 6), "yyyy-MM-dd");
+    const todayStr = format(today, "yyyy-MM-dd");
+    return todayStr >= ws && todayStr <= we;
+  }, [currentDate, viewMode]);
+
   // Navigation label
   const navLabel = useMemo(() => {
     if (isPending) return "Loading…";
@@ -212,14 +228,16 @@ export default function CalendarPageClient({
             >
               <ChevronRight className="w-5 h-5 text-stone-600" />
             </button>
-            <button
-              type="button"
-              onClick={handleToday}
-              disabled={isPending}
-              className="ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
-            >
-              Today
-            </button>
+            {!isCurrentPeriod && (
+              <button
+                type="button"
+                onClick={handleToday}
+                disabled={isPending}
+                className="ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
+              >
+                Today
+              </button>
+            )}
           </div>
         </header>
 
