@@ -60,7 +60,7 @@ export function RelatedEventsSheet({
         className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-40 transition-opacity"
         onClick={onClose}
       />
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
+      <div className="fixed right-0 top-0 h-full w-full sm:max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200/50">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-stone-800">Related Events</h2>

@@ -52,8 +52,8 @@ function DayCellInner({
       onClick={() => onClick(dateStr)}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick(dateStr)}
       className={cn(
-        "relative min-h-[80px] p-2 cursor-pointer transition-colors duration-150 ease-out",
-        "flex flex-col gap-1 rounded-md group",
+        "relative min-h-[64px] md:min-h-[80px] p-1.5 md:p-2 cursor-pointer transition-colors duration-150 ease-out",
+        "flex flex-col gap-0.5 md:gap-1 rounded-md group",
         cellBg,
         publicHoliday ? "border border-orange-200" : "border border-stone-100",
         "hover:bg-stone-50/80 hover:shadow-sm",

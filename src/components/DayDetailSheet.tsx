@@ -198,7 +198,7 @@ export function DayDetailSheet({
         onClick={onClose}
       />
 
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
+      <div className="fixed right-0 top-0 h-full w-full sm:max-w-md bg-white/90 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-stone-200/50">
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200/50">
           <div>
             <h2 className="text-lg font-semibold text-stone-800">Events</h2>
@@ -262,7 +262,7 @@ export function DayDetailSheet({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     {ev.title && onViewRelated && (
                       <button
                         type="button"

@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { SafeTeamMember } from "@/types";
-import { Users } from "lucide-react";
+import { Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { EventTypeDot, EVENT_TYPE_LABEL } from "./EventTypeIcon";
@@ -27,6 +27,8 @@ interface SidebarProps {
   eventTypeFilter: string[];
   onToggleType: (type: string) => void;
   onSetTypes: (types: string[]) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 
@@ -38,16 +40,39 @@ export function Sidebar({
   eventTypeFilter,
   onToggleType,
   onSetTypes,
+  isOpen,
+  onClose,
 }: SidebarProps) {
   const allMemberIds = teamMembers.map((m) => m.id);
   const allTypes = TYPE_ORDER;
-  return (
-    <div className="w-64 bg-white/40 backdrop-blur-xl border-r border-stone-200/50 flex flex-col h-full shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-20">
-      <div className="p-5 border-b border-stone-100">
+
+  // Lock body scroll when sidebar drawer is open on mobile
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  const panelContent = (
+    <>
+      <div className="p-5 border-b border-stone-100 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
           <Users className="w-4 h-4 text-stone-500" />
           Team Members
         </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="lg:hidden p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-4 h-4 text-stone-500" />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
@@ -144,6 +169,33 @@ export function Sidebar({
           ))}
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar: always visible */}
+      <aside className="hidden lg:flex w-64 bg-white/40 backdrop-blur-xl border-r border-stone-200/50 flex-col h-full shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-20">
+        {panelContent}
+      </aside>
+
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-40 transition-opacity"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Mobile drawer: slides in from left */}
+      <aside
+        className={cn(
+          "lg:hidden fixed inset-y-0 left-0 w-[280px] bg-white/95 backdrop-blur-xl z-50 flex flex-col h-full shadow-xl transition-transform duration-300 ease-out",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {panelContent}
+      </aside>
+    </>
   );
 }

@@ -11,7 +11,7 @@ import { DayDetailSheet } from "@/components/DayDetailSheet";
 import { RelatedEventsSheet } from "@/components/RelatedEventsSheet";
 import { EventSearch } from "@/components/EventSearch";
 import { getEventsForMonth } from "@/lib/actions";
-import { ChevronLeft, ChevronRight, Sparkles, LayoutGrid, Rows3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, LayoutGrid, Rows3, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CalendarPageClientProps {
@@ -46,6 +46,7 @@ export default function CalendarPageClient({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [relatedSheetOpen, setRelatedSheetOpen] = useState(false);
   const [relatedTitle, setRelatedTitle] = useState<string | null>(null);
@@ -178,24 +179,36 @@ export default function CalendarPageClient({
         eventTypeFilter={selectedTypes}
         onToggleType={toggleType}
         onSetTypes={(types) => setSelectedTypes(types as EventType[])}
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-8 py-5 bg-white/60 backdrop-blur-md border-b border-stone-200/50 z-10 sticky top-0">
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl ring-1 ring-orange-200/60 shadow-sm">
-              <Sparkles className="w-5 h-5 text-amber-600" strokeWidth={2.2} />
+        <header className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 bg-white/60 backdrop-blur-md border-b border-stone-200/50 z-10 sticky top-0">
+          <div className="flex items-center gap-3 md:gap-4">
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 hover:bg-stone-100 rounded-lg transition-colors"
+              aria-label="Open filters"
+            >
+              <Menu className="w-5 h-5 text-stone-600" />
+            </button>
+
+            <div className="p-2 md:p-2.5 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl ring-1 ring-orange-200/60 shadow-sm">
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-600" strokeWidth={2.2} />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-stone-800">Inno Team Planner</h1>
-              <p className="text-sm text-stone-500 font-medium">
+            <div className="min-w-0">
+              <h1 className="text-base md:text-xl font-bold text-stone-800 truncate">Inno Team Planner</h1>
+              <p className="hidden md:block text-sm text-stone-500 font-medium">
                 The innovation team&apos;s weekly pulse
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="hidden md:block w-64">
               <EventSearch
                 year={year}
@@ -210,32 +223,32 @@ export default function CalendarPageClient({
             </div>
 
             {/* View toggle */}
-            <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-1">
+            <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-0.5 md:gap-1">
               <button
                 type="button"
                 onClick={() => setViewMode("month")}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  "flex items-center gap-1 px-2 py-1.5 md:px-3 rounded-md text-[11px] md:text-xs font-semibold transition-colors",
                   viewMode === "month"
                     ? "bg-white text-stone-800 shadow-sm"
                     : "text-stone-500 hover:text-stone-700"
                 )}
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                Month
+                <LayoutGrid className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                <span className="hidden sm:inline">Month</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("week")}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  "flex items-center gap-1 px-2 py-1.5 md:px-3 rounded-md text-[11px] md:text-xs font-semibold transition-colors",
                   viewMode === "week"
                     ? "bg-white text-stone-800 shadow-sm"
                     : "text-stone-500 hover:text-stone-700"
                 )}
               >
-                <Rows3 className="w-3.5 h-3.5" />
-                Week
+                <Rows3 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                <span className="hidden sm:inline">Week</span>
               </button>
             </div>
 
@@ -244,29 +257,29 @@ export default function CalendarPageClient({
               type="button"
               onClick={handlePrev}
               disabled={isPending}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
+              className="p-1.5 md:p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
               aria-label="Previous"
             >
-              <ChevronLeft className="w-5 h-5 text-stone-600" />
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-stone-600" />
             </button>
-            <span className="text-sm font-semibold text-stone-700 min-w-[160px] text-center">
+            <span className="text-sm font-semibold text-stone-700 min-w-[120px] md:min-w-[160px] text-center truncate">
               {navLabel}
             </span>
             <button
               type="button"
               onClick={handleNext}
               disabled={isPending}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
+              className="p-1.5 md:p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
               aria-label="Next"
             >
-              <ChevronRight className="w-5 h-5 text-stone-600" />
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-stone-600" />
             </button>
             {!isCurrentPeriod && (
               <button
                 type="button"
                 onClick={handleToday}
                 disabled={isPending}
-                className="ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
+                className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
               >
                 Today
               </button>
@@ -274,7 +287,7 @@ export default function CalendarPageClient({
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-auto p-4 md:p-8">
           <div className="max-w-[1400px] mx-auto">
             {viewMode === "month" && weeklyPlan && (
               <WeeklyPlanBanner

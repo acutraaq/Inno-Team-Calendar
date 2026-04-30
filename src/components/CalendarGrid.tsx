@@ -15,7 +15,7 @@ interface CalendarGridProps {
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridProps) {
-  // Get the first day of the month, and how many days in the month
+  // Get the first day of the month, and how many days in the month  
   const firstDay = new Date(year, month, 1);
   const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -99,19 +99,20 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
   return (
     <div className="w-full">
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-0.5 md:gap-1 mb-1 md:mb-2">
         {WEEKDAYS.map((d) => (
           <div
             key={d}
-            className="text-center text-xs font-semibold text-stone-500 py-1 uppercase tracking-wider"
+            className="text-center text-[10px] md:text-xs font-semibold text-stone-500 py-1 uppercase tracking-wider"
           >
-            {d}
+            <span className="hidden md:inline">{d}</span>
+            <span className="md:hidden">{d.slice(0, 1)}</span>
           </div>
         ))}
       </div>
 
       {/* Days grid */}
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-0.5 md:gap-1.5">
         {prevMonthDays.map((day) => renderCell(day, false, -1))}
         {currentMonthDays.map((day) => renderCell(day, true, 0))}
         {nextMonthDays.map((day) => renderCell(day, false, 1))}
