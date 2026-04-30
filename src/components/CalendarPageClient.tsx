@@ -7,6 +7,8 @@ import { CalendarGrid } from "@/components/CalendarGrid";
 import { Sidebar } from "@/components/Sidebar";
 import { WeeklyPlanBanner } from "@/components/WeeklyPlanBanner";
 import { WeekView } from "@/components/WeekView";
+import { MobileAgendaView } from "@/components/MobileAgendaView";
+import { MobileWeekView } from "@/components/MobileWeekView";
 import { DayDetailSheet } from "@/components/DayDetailSheet";
 import { RelatedEventsSheet } from "@/components/RelatedEventsSheet";
 import { EventSearch } from "@/components/EventSearch";
@@ -185,110 +187,116 @@ export default function CalendarPageClient({
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 bg-white/60 backdrop-blur-md border-b border-stone-200/50 z-10 sticky top-0">
-          <div className="flex items-center gap-3 md:gap-4">
-            {/* Mobile hamburger */}
-            <button
-              type="button"
-              onClick={() => setMobileSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 hover:bg-stone-100 rounded-lg transition-colors"
-              aria-label="Open filters"
-            >
-              <Menu className="w-5 h-5 text-stone-600" />
-            </button>
-
-            <div className="p-2 md:p-2.5 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl ring-1 ring-orange-200/60 shadow-sm">
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-600" strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-base md:text-xl font-bold text-stone-800 truncate">Inno Team Planner</h1>
-              <p className="hidden md:block text-sm text-stone-500 font-medium">
-                The innovation team&apos;s weekly pulse
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="hidden md:block w-64">
-              <EventSearch
-                year={year}
-                query={searchQuery}
-                onQueryChange={setSearchQuery}
-                onSelectResult={(title) => {
-                  setSearchQuery(title);
-                  setRelatedTitle(title);
-                  setRelatedSheetOpen(true);
-                }}
-              />
-            </div>
-
-            {/* View toggle */}
-            <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-0.5 md:gap-1">
+        <header className="sticky top-0 z-10 border-b border-stone-200/50 bg-white/60 backdrop-blur-md">
+          <div className="flex flex-col gap-2.5 px-3 py-3 md:flex-row md:items-center md:justify-between md:gap-4 md:px-8 md:py-5">
+            {/* Brand row */}
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Mobile hamburger */}
               <button
                 type="button"
-                onClick={() => setViewMode("month")}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1.5 md:px-3 rounded-md text-[11px] md:text-xs font-semibold transition-colors",
-                  viewMode === "month"
-                    ? "bg-white text-stone-800 shadow-sm"
-                    : "text-stone-500 hover:text-stone-700"
+                onClick={() => setMobileSidebarOpen(true)}
+                className="-ml-1 inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-stone-100 lg:hidden"
+                aria-label="Open filters"
+              >
+                <Menu className="h-5 w-5 text-stone-600" />
+              </button>
+
+              <div className="rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 p-2 ring-1 ring-orange-200/60 shadow-sm md:p-2.5">
+                <Sparkles className="h-4 w-4 text-amber-600 md:h-5 md:w-5" strokeWidth={2.2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-base font-bold text-stone-800 md:text-xl">Inno Team Planner</h1>
+                <p className="hidden text-sm font-medium text-stone-500 md:block">
+                  The innovation team&apos;s weekly pulse
+                </p>
+              </div>
+            </div>
+
+            {/* Controls row */}
+            <div className="flex items-center justify-between gap-2 md:justify-end md:gap-3">
+              <div className="hidden md:block md:w-64">
+                <EventSearch
+                  year={year}
+                  query={searchQuery}
+                  onQueryChange={setSearchQuery}
+                  onSelectResult={(title) => {
+                    setSearchQuery(title);
+                    setRelatedTitle(title);
+                    setRelatedSheetOpen(true);
+                  }}
+                />
+              </div>
+
+              {/* View toggle */}
+              <div className="flex items-center gap-0.5 rounded-lg bg-stone-100 p-1 md:gap-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("month")}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors md:px-3",
+                    viewMode === "month"
+                      ? "bg-white text-stone-800 shadow-sm"
+                      : "text-stone-500 hover:text-stone-700"
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>Month</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("week")}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors md:px-3",
+                    viewMode === "week"
+                      ? "bg-white text-stone-800 shadow-sm"
+                      : "text-stone-500 hover:text-stone-700"
+                  )}
+                >
+                  <Rows3 className="h-3.5 w-3.5" />
+                  <span>Week</span>
+                </button>
+              </div>
+
+              {/* Navigation cluster */}
+              <div className="flex items-center gap-1 md:gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={isPending}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 md:h-10 md:w-10"
+                  aria-label="Previous"
+                >
+                  <ChevronLeft className="h-4 w-4 text-stone-600 md:h-5 md:w-5" />
+                </button>
+                <span className="min-w-[110px] truncate text-center text-sm font-semibold text-stone-700 md:min-w-[160px]">
+                  {navLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isPending}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 md:h-10 md:w-10"
+                  aria-label="Next"
+                >
+                  <ChevronRight className="h-4 w-4 text-stone-600 md:h-5 md:w-5" />
+                </button>
+                {!isCurrentPeriod && (
+                  <button
+                    type="button"
+                    onClick={handleToday}
+                    disabled={isPending}
+                    className="ml-1 inline-flex h-9 items-center rounded-md border border-stone-300 px-2.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 md:ml-2 md:h-10 md:px-3 md:text-sm"
+                  >
+                    Today
+                  </button>
                 )}
-              >
-                <LayoutGrid className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                <span className="hidden sm:inline">Month</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("week")}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1.5 md:px-3 rounded-md text-[11px] md:text-xs font-semibold transition-colors",
-                  viewMode === "week"
-                    ? "bg-white text-stone-800 shadow-sm"
-                    : "text-stone-500 hover:text-stone-700"
-                )}
-              >
-                <Rows3 className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                <span className="hidden sm:inline">Week</span>
-              </button>
+              </div>
             </div>
-
-            {/* Navigation */}
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={isPending}
-              className="p-1.5 md:p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-stone-600" />
-            </button>
-            <span className="text-sm font-semibold text-stone-700 min-w-[120px] md:min-w-[160px] text-center truncate">
-              {navLabel}
-            </span>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={isPending}
-              className="p-1.5 md:p-2 hover:bg-stone-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
-              aria-label="Next"
-            >
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-stone-600" />
-            </button>
-            {!isCurrentPeriod && (
-              <button
-                type="button"
-                onClick={handleToday}
-                disabled={isPending}
-                className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm font-semibold text-stone-700 border border-stone-300 rounded-md hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-colors disabled:opacity-50"
-              >
-                Today
-              </button>
-            )}
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-4 md:p-8">
-          <div className="max-w-[1400px] mx-auto">
+        <div className="flex-1 overflow-auto p-3 md:p-8">
+          <div className="mx-auto max-w-[1400px]">
             {viewMode === "month" && weeklyPlan && (
               <WeeklyPlanBanner
                 plan={{
@@ -302,7 +310,7 @@ export default function CalendarPageClient({
             )}
 
             {fetchError && (
-              <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800 flex items-center justify-between gap-3">
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 <span>Couldn&apos;t load events: {fetchError}</span>
                 <button
                   type="button"
@@ -315,25 +323,52 @@ export default function CalendarPageClient({
             )}
 
             {!fetchError && events.length > 0 && filteredEvents.length === 0 && (
-              <div className="mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Nothing to show — adjust the team member or event type filters in the sidebar.
               </div>
             )}
 
             {viewMode === "month" ? (
-              <CalendarGrid
-                year={year}
-                month={month}
-                events={filteredEvents}
-                onDayClick={handleDayClick}
-              />
+              <>
+                {/* Desktop / tablet grid */}
+                <div className="hidden md:block">
+                  <CalendarGrid
+                    year={year}
+                    month={month}
+                    events={filteredEvents}
+                    onDayClick={handleDayClick}
+                  />
+                </div>
+                {/* Mobile agenda list */}
+                <div className="md:hidden">
+                  <MobileAgendaView
+                    year={year}
+                    month={month}
+                    events={filteredEvents}
+                    onDayClick={handleDayClick}
+                  />
+                </div>
+              </>
             ) : (
-              <WeekView
-                currentDate={currentDate}
-                events={filteredEvents}
-                teamMembers={teamMembers}
-                onDayClick={handleDayClick}
-              />
+              <>
+                {/* Desktop / tablet table */}
+                <div className="hidden md:block">
+                  <WeekView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    teamMembers={teamMembers}
+                    onDayClick={handleDayClick}
+                  />
+                </div>
+                {/* Mobile stacked cards */}
+                <div className="md:hidden">
+                  <MobileWeekView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onDayClick={handleDayClick}
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>

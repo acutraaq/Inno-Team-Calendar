@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { addDays, startOfWeek, format, isSameDay } from "date-fns";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/dates";
 import {
   EVENT_TYPE_ICONS,
   EVENT_TYPE_ICON_COLORS,
@@ -59,12 +60,6 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
     );
   }
 
-  // Safe local date parse (avoids UTC shift)
-  function parseLocalDate(dateStr: string) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-
   return (
     <div className="flex flex-col gap-5">
       {/* Highlighted events & meetings */}
@@ -107,7 +102,7 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
         <table className="w-full border-collapse min-w-[640px]">
           <thead>
             <tr>
-              <th className="px-4 py-3 text-left border-b border-r border-stone-100 bg-stone-50/60 w-36">
+              <th className="sticky left-0 z-10 px-4 py-3 text-left border-b border-r border-stone-100 bg-stone-50/95 backdrop-blur-sm w-36">
                 <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Member</span>
               </th>
               {weekDays.map((day, i) => {
@@ -144,7 +139,7 @@ export function WeekView({ currentDate, events, teamMembers, onDayClick }: WeekV
           <tbody>
             {teamMembers.map((member, idx) => (
               <tr key={member.id} className={idx < teamMembers.length - 1 ? "border-b border-stone-100" : ""}>
-                <td className="px-4 py-3 border-r border-stone-100 bg-stone-50/20">
+                <td className="sticky left-0 z-[5] px-4 py-3 border-r border-stone-100 bg-stone-50/95 backdrop-blur-sm">
                   <span className="text-sm font-medium text-stone-700">{member.name}</span>
                 </td>
                 {weekDays.map((day, i) => {

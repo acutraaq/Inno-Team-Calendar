@@ -4,6 +4,7 @@ import { useMemo, useCallback } from "react";
 import { SafeEvent } from "@/types";
 import { DayCell } from "./DayCell";
 import { format } from "date-fns";
+import { buildEventsByDate } from "@/lib/dates";
 
 interface CalendarGridProps {
   year: number;
@@ -41,26 +42,7 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
   // Use local date to avoid UTC-offset shifting the "today" date for UTC+ users
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
-  // Pre-group events by date in O(n) instead of filtering per cell in O(n*42)
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, SafeEvent[]>();
-    for (const e of events) {
-      const start = e.date;
-      const end = e.endDate || e.date;
-      // Expand multi-day events into each date key they cover
-      let cur = start;
-      while (cur <= end) {
-        const list = map.get(cur) ?? [];
-        list.push(e);
-        map.set(cur, list);
-        // Advance by one day using local date math
-        const [y, m, d] = cur.split("-").map(Number);
-        const next = new Date(y, m - 1, d + 1);
-        cur = format(next, "yyyy-MM-dd");
-      }
-    }
-    return map;
-  }, [events]);
+  const eventsByDate = useMemo(() => buildEventsByDate(events), [events]);
 
   const handleDayClick = useCallback(
     (dateStr: string) => onDayClick(dateStr),
