@@ -206,7 +206,7 @@ export async function getEventsByTitle(year: number, title: string) {
 
 export async function searchEventTitles(year: number, query: string) {
   const q = query?.trim() ?? "";
-  if (q.length === 0) return [] as { title: string }[];
+  if (q.length === 0) return [] as { title: string; date: string }[];
   const start = `${year}-01-01`;
   const end = `${year}-12-31`;
   const events = await prisma.event.findMany({
@@ -217,9 +217,9 @@ export async function searchEventTitles(year: number, query: string) {
     distinct: ["title"],
     orderBy: { date: "asc" },
     take: 20,
-    select: { title: true },
+    select: { title: true, date: true },
   });
-  return events.filter((e): e is { title: string } => !!e.title);
+  return events.filter((e): e is { title: string; date: string } => !!e.title && !!e.date);
 }
 
 export async function createEvent(data: {

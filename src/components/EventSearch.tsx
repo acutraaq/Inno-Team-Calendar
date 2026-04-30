@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, CalendarDays } from "lucide-react";
 import { searchEventTitles } from "@/lib/actions";
+import { format } from "date-fns";
+
+type Suggestion = { title: string; date: string };
 
 interface EventSearchProps {
   year: number;
@@ -11,8 +14,17 @@ interface EventSearchProps {
   onSelectResult: (title: string) => void;
 }
 
+function fmtDate(dateStr: string) {
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return format(new Date(y, m - 1, d), "d MMM");
+  } catch {
+    return dateStr;
+  }
+}
+
 export function EventSearch({ year, query, onQueryChange, onSelectResult }: EventSearchProps) {
-  const [suggestions, setSuggestions] = useState<{ title: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +44,7 @@ export function EventSearch({ year, query, onQueryChange, onSelectResult }: Even
       debounceRef.current = setTimeout(() => {
         searchEventTitles(year, q)
           .then((res) => {
-            setSuggestions(res.filter((s) => !!s.title));
+            setSuggestions(res.filter((s): s is Suggestion => !!s.title && !!s.date));
           })
           .catch(() => setSuggestions([]))
           .finally(() => setLoading(false));
@@ -104,9 +116,13 @@ export function EventSearch({ year, query, onQueryChange, onSelectResult }: Even
               key={s.title}
               type="button"
               onClick={() => handleSelect(s.title)}
-              className="w-full text-left px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+              className="w-full text-left px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors flex items-center justify-between gap-3"
             >
-              {s.title}
+              <span className="truncate">{s.title}</span>
+              <span className="text-stone-400 text-xs flex items-center gap-1 shrink-0">
+                <CalendarDays className="w-3 h-3" />
+                {fmtDate(s.date)}
+              </span>
             </button>
           ))}
         </div>
