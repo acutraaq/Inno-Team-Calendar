@@ -188,6 +188,40 @@ export async function getEventsForDay(date: string) {
   }) as Promise<SafeEvent[]>;
 }
 
+export async function getEventsByTitle(year: number, title: string) {
+  if (!title || title.trim().length === 0) {
+    return [] as SafeEvent[];
+  }
+  const start = `${year}-01-01`;
+  const end = `${year}-12-31`;
+  return prisma.event.findMany({
+    where: {
+      title: { contains: title.trim(), mode: "insensitive" },
+      date: { gte: start, lte: end },
+    },
+    orderBy: { date: "asc" },
+    select: EVENT_SELECT,
+  }) as Promise<SafeEvent[]>;
+}
+
+export async function searchEventTitles(year: number, query: string) {
+  const q = query?.trim() ?? "";
+  if (q.length === 0) return [] as { title: string }[];
+  const start = `${year}-01-01`;
+  const end = `${year}-12-31`;
+  const events = await prisma.event.findMany({
+    where: {
+      title: { contains: q, mode: "insensitive" },
+      date: { gte: start, lte: end },
+    },
+    distinct: ["title"],
+    orderBy: { date: "asc" },
+    take: 20,
+    select: { title: true },
+  });
+  return events.filter((e): e is { title: string } => !!e.title);
+}
+
 export async function createEvent(data: {
   date: string;
   endDate?: string;

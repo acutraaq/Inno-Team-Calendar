@@ -8,6 +8,8 @@ import { Sidebar } from "@/components/Sidebar";
 import { WeeklyPlanBanner } from "@/components/WeeklyPlanBanner";
 import { WeekView } from "@/components/WeekView";
 import { DayDetailSheet } from "@/components/DayDetailSheet";
+import { RelatedEventsSheet } from "@/components/RelatedEventsSheet";
+import { EventSearch } from "@/components/EventSearch";
 import { getEventsForMonth } from "@/lib/actions";
 import { ChevronLeft, ChevronRight, Sparkles, LayoutGrid, Rows3 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,6 +46,10 @@ export default function CalendarPageClient({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [relatedSheetOpen, setRelatedSheetOpen] = useState(false);
+  const [relatedTitle, setRelatedTitle] = useState<string | null>(null);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -79,13 +85,17 @@ export default function CalendarPageClient({
   }, [fetchEvents, currentDate]);
 
   const filteredEvents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return events.filter((e) => {
       const typeMatch = selectedTypes.includes(e.type);
       const memberMatch =
         !e.teamMemberId || selectedMembers.includes(e.teamMemberId);
-      return typeMatch && memberMatch;
+      const searchMatch = !query ||
+        (e.title?.toLowerCase().includes(query) ?? false) ||
+        (e.description?.toLowerCase().includes(query) ?? false);
+      return typeMatch && memberMatch && searchMatch;
     });
-  }, [events, selectedMembers, selectedTypes]);
+  }, [events, selectedMembers, selectedTypes, searchQuery]);
 
   const weeklyPlan = useMemo(() => {
     const weekStartStr = format(startOfWeek(currentDate), "yyyy-MM-dd");
@@ -112,6 +122,16 @@ export default function CalendarPageClient({
     setSelectedDate(dateStr);
     setSheetOpen(true);
   }, []);
+
+  const handleJumpToDate = useCallback((dateStr: string) => {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const target = new Date(y, m - 1, d);
+    setCurrentDate(target);
+    setViewMode("month");
+    fetchEvents(target);
+    setSelectedDate(dateStr);
+    setSheetOpen(true);
+  }, [fetchEvents]);
 
   const dayEvents = selectedDate
     ? filteredEvents.filter((e) => {
@@ -176,6 +196,19 @@ export default function CalendarPageClient({
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="hidden md:block w-64">
+              <EventSearch
+                year={year}
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
+                onSelectResult={(title) => {
+                  setSearchQuery(title);
+                  setRelatedTitle(title);
+                  setRelatedSheetOpen(true);
+                }}
+              />
+            </div>
+
             {/* View toggle */}
             <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-1">
               <button
@@ -303,6 +336,19 @@ export default function CalendarPageClient({
           setSelectedDate(null);
         }}
         onEventChange={handleEventChange}
+        onViewRelated={(title) => {
+          if (!title) return;
+          setRelatedTitle(title);
+          setRelatedSheetOpen(true);
+        }}
+      />
+
+      <RelatedEventsSheet
+        title={relatedTitle}
+        year={year}
+        isOpen={relatedSheetOpen}
+        onClose={() => setRelatedSheetOpen(false)}
+        onJumpToDate={handleJumpToDate}
       />
     </div>
   );

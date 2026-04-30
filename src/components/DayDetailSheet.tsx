@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { SafeEvent, SafeTeamMember } from "@/types";
 import type { EventType, EventSession } from "@/types";
-import { X, Plus, Trash2, Pencil } from "lucide-react";
+import { X, Plus, Trash2, Pencil, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   EVENT_TYPE_ICONS,
@@ -25,6 +25,7 @@ interface DayDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onEventChange: () => void;
+  onViewRelated?: (title: string | null) => void;
 }
 
 const TYPE_ORDER: EventType[] = [
@@ -55,6 +56,7 @@ export function DayDetailSheet({
   isOpen,
   onClose,
   onEventChange,
+  onViewRelated,
 }: DayDetailSheetProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -261,6 +263,17 @@ export function DayDetailSheet({
                     )}
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    {ev.title && onViewRelated && (
+                      <button
+                        type="button"
+                        onClick={() => onViewRelated(ev.title)}
+                        className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+                        title="View related events"
+                        aria-label="View related events"
+                      >
+                        <Link2 className="w-3.5 h-3.5 text-stone-400" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleEditClick(ev)}
