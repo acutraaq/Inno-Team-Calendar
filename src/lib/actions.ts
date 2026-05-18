@@ -148,6 +148,12 @@ export async function updateTeamMember(id: string, color: string) {
 }
 
 export async function deleteTeamMember(id: string) {
+  const eventCount = await prisma.event.count({ where: { teamMemberId: id } });
+  if (eventCount > 0) {
+    throw new Error(
+      `Cannot delete member: they have ${eventCount} event${eventCount === 1 ? "" : "s"}. Remove their events first.`
+    );
+  }
   return prisma.teamMember.delete({
     where: { id },
     select: { id: true },
