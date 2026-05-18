@@ -11,8 +11,9 @@ import { MobileAgendaView } from "@/components/MobileAgendaView";
 import { MobileWeekView } from "@/components/MobileWeekView";
 import { DayDetailSheet } from "@/components/DayDetailSheet";
 import { RelatedEventsSheet } from "@/components/RelatedEventsSheet";
+import { ManagePeopleModal } from "@/components/ManagePeopleModal";
 import { EventSearch } from "@/components/EventSearch";
-import { getEventsForMonth } from "@/lib/actions";
+import { getEventsForMonth, getTeamMembers } from "@/lib/actions";
 import { ChevronLeft, ChevronRight, Sparkles, LayoutGrid, Rows3, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,8 @@ export default function CalendarPageClient({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
-  const teamMembers: SafeTeamMember[] = initialTeamMembers;
+  const [teamMembers, setTeamMembers] = useState<SafeTeamMember[]>(initialTeamMembers);
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     initialTeamMembers.map((m) => m.id)
   );
@@ -86,6 +88,17 @@ export default function CalendarPageClient({
   const handleEventChange = useCallback(() => {
     fetchEvents(currentDate);
   }, [fetchEvents, currentDate]);
+
+  const handleMembersChange = useCallback(() => {
+    startTransition(async () => {
+      try {
+        const fresh = await getTeamMembers();
+        setTeamMembers(fresh);
+      } catch {
+        // non-critical; list stays stale
+      }
+    });
+  }, []);
 
   const filteredEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -183,6 +196,7 @@ export default function CalendarPageClient({
         onSetTypes={(types) => setSelectedTypes(types as EventType[])}
         isOpen={mobileSidebarOpen}
         onClose={() => setMobileSidebarOpen(false)}
+        onManageClick={() => setIsManageOpen(true)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -397,6 +411,13 @@ export default function CalendarPageClient({
         isOpen={relatedSheetOpen}
         onClose={() => setRelatedSheetOpen(false)}
         onJumpToDate={handleJumpToDate}
+      />
+
+      <ManagePeopleModal
+        members={teamMembers}
+        isOpen={isManageOpen}
+        onClose={() => setIsManageOpen(false)}
+        onMembersChange={handleMembersChange}
       />
     </div>
   );
