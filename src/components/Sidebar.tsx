@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { SafeTeamMember } from "@/types";
-import { Users, X } from "lucide-react";
+import { Users, X, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { EventTypeDot, EVENT_TYPE_LABEL } from "./EventTypeIcon";
@@ -29,6 +29,7 @@ interface SidebarProps {
   onSetTypes: (types: string[]) => void;
   isOpen: boolean;
   onClose: () => void;
+  onManageClick: () => void;
 }
 
 
@@ -42,6 +43,7 @@ export function Sidebar({
   onSetTypes,
   isOpen,
   onClose,
+  onManageClick,
 }: SidebarProps) {
   const allMemberIds = teamMembers.map((m) => m.id);
   const allTypes = TYPE_ORDER;
@@ -65,14 +67,25 @@ export function Sidebar({
           <Users className="w-4 h-4 text-stone-500" />
           Team Members
         </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="lg:hidden p-1.5 hover:bg-stone-100 rounded-md transition-colors"
-          aria-label="Close sidebar"
-        >
-          <X className="w-4 h-4 text-stone-500" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onManageClick}
+            className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+            aria-label="Manage people"
+            title="Manage people"
+          >
+            <Settings className="w-4 h-4 text-stone-500" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="lg:hidden p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="w-4 h-4 text-stone-500" />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
