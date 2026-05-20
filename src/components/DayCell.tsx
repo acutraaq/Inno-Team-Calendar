@@ -113,14 +113,10 @@ function DayCellInner({
                 !isStart && !isEnd && "rounded-none opacity-70"
               )}
             >
-              {isStart || !isMultiDay ? (
-                <>
-                  <EventTypeDot type={event.type} className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{label}</span>
-                </>
-              ) : (
-                <span className="text-[9px] opacity-50 mx-auto select-none">···</span>
-              )}
+              <>
+                <EventTypeDot type={event.type} className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{label}</span>
+              </>
             </div>
           );
         })}

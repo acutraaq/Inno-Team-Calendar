@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { SafeEvent } from "@/types";
 import { DayCell } from "./DayCell";
 import { format } from "date-fns";
@@ -39,8 +39,11 @@ export function CalendarGrid({ year, month, events, onDayClick }: CalendarGridPr
     (_, i) => i + 1
   );
 
-  // Use local date to avoid UTC-offset shifting the "today" date for UTC+ users
-  const todayStr = format(new Date(), "yyyy-MM-dd");
+  // useState + useEffect prevents SSR/client mismatch for UTC+ timezones
+  const [todayStr, setTodayStr] = useState("");
+  useEffect(() => {
+    setTodayStr(format(new Date(), "yyyy-MM-dd"));
+  }, []);
 
   const eventsByDate = useMemo(() => buildEventsByDate(events), [events]);
 
